@@ -2,13 +2,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const teacherRoutes = require('./routes/teacherRoutes');
+const authLogin = require("./routes/loginRoutes")
 
 
 // Create an instance of Express
 const app = express();
 app.use(express.json());
-app.use('/teachers', teacherRoutes);
+app.use('/auth', authLogin);
 
 const db = require('./db/db'); // Import the db.js file
 
