@@ -1,6 +1,6 @@
 const { body, validationResult } = require("express-validator");
 
-exports.validateLogin = [
+const validateLogin = [
   body("email").isEmail().withMessage("Enter a valid email"),
   body("password").notEmpty().withMessage("Password is required"),
   (req, res, next) => {
@@ -11,3 +11,5 @@ exports.validateLogin = [
     next();
   },
 ];
+
+module.exports = { validateLogin };
