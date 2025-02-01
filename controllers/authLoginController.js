@@ -10,38 +10,40 @@ const generateAccessToken = (userId, role) => {
 // User Login
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body; // Accepts email
 
-    // Check if user exists in Faculty table
-    let user = await User.findUserByEmailFaculty(email);
-    let role = 'faculty';
+    let user = null;
+    let role = "";
 
-    if (!user) {
-      // If user is not found in Faculty table, check Course Coordinator table
-      user = await User.findUserByEmailCoordinator(email);
-      role = 'coordinator';
+    // Case 1: Check if the user exists in Faculty Table (role = faculty)
+    user = await User.findUserByEmailFaculty(email);
+    if (user) {
+      role = "faculty";
 
-      if (!user) {
-        // If user is not found in Course Coordinator table, check Department table (admin)
-        user = await User.findUserByEmailDepartment(email);
-        role = 'admin';
+      // Case 2: Check if the user is also a Coordinator (role = coordinator)
+      const coordinator = await User.findUserByFacultyId(user.faculty_id);
+      if (coordinator) {
+        role = "coordinator"; // Upgrade role if user is also a coordinator
+      }
+
+    } else {
+      // Case 3: Check if the user exists in Admin Table (role = admin)
+      user = await User.findUserByDeptId(email); // Admin login is now identified by email
+      if (user && password === user.password) {
+        role = "admin";
       }
     }
 
-    if (!user) {
+    // If no user found or password mismatch
+    if (!user || password !== user.password) {
       return res.status(400).json({ msg: "Invalid email or password" });
     }
 
-    // Directly compare plain text passwords
-    if (password !== user.password) {
-      return res.status(400).json({ msg: "Invalid email or password" });
-    }
-
-    // Generate access token with role
-    const accessToken = generateAccessToken(user.id, role);
+    // Generate access token with user ID and role
+    const accessToken = generateAccessToken(user.faculty_id || user.dept_id, role);
 
     // Return user details with access token
-    res.json({ accessToken, user: { id: user.id, name: user.name, email: user.email, role } });
+    res.json({ accessToken, user: { id: user.faculty_id || user.dept_id, role } });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
