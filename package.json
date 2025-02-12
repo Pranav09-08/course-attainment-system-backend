@@ -10,12 +10,19 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+<<<<<<< HEAD
     "bcryptjs": "^2.4.3",
+=======
+    "bcrypt": "^5.1.1",
+>>>>>>> 04a80527ae94fa921db908c65b12002cfdebd35c
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+<<<<<<< HEAD
     "express-validator": "^7.2.1",
+=======
+>>>>>>> 04a80527ae94fa921db908c65b12002cfdebd35c
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.12.0"
   }
