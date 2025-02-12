@@ -65,8 +65,8 @@ const getCoordinator = async (req, res) => {
       return res.status(404).json({ message: 'Faculty not found' });
     }
 
-    console.log('✅ Faculty found:', results[0]);
-    res.json(results[0]);
+    console.log('✅ Faculty found:', results);
+    res.json(results);
 
   } catch (err) {
     console.error('❌ Error fetching faculty:', err);
