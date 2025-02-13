@@ -5,8 +5,8 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const authLoginRoute = require("./routes/authLoginRoute"); // Login route
 const facultyRoute = require('./routes/profileRoute');
-const courseRoute =require('./routes/coursesRoute')
-
+const courseRoute =require('./routes/coursesRoute');
+const facultRoute2 =require('./routes/courseAllotmentRoute');
 
 const app = express();
 
@@ -20,6 +20,7 @@ app.use(bodyParser.json());
 app.use("/auth", authLoginRoute);
 app.use("/profile", facultyRoute);
 app.use("/courses", courseRoute);
+app.use("/faculty_courses",facultRoute2);
 
 // Example route for testing
 app.get("/", (req, res) => {
