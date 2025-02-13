@@ -5,6 +5,8 @@ const cors = require("cors");
 const authLoginRoute = require("./routes/authLoginRoute");      // ✅ Login Route
 const facultyRoute = require('./routes/profileRoute');          // ✅ Profile Route
 const dashboardRoutes = require("./routes/dashboardAuth");    // ✅ Dashboard Route
+const adminRoutes = require('./routes/adminRoute');           //Admin Route
+
 
 const app = express();
 
@@ -17,6 +19,7 @@ app.use(bodyParser.json());
 app.use("/auth", authLoginRoute);         // Authentication Route (Login)
 app.use("/profile", facultyRoute);        // Profile Route
 app.use("/dashboard", dashboardRoutes);   // Protected Dashboard Routes (with roles)
+app.use("/admin",adminRoutes);            // admin Route
 
 // ✅ Example route for testing
 app.get("/", (req, res) => {
