@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const authLoginRoute = require("./routes/authLoginRoute"); // Login route
 const facultyRoute = require('./routes/profileRoute');
+const courseRoute =require('./routes/coursesRoute')
+
 
 const app = express();
 
@@ -17,6 +19,7 @@ app.use(bodyParser.json());
 // Define API routes
 app.use("/auth", authLoginRoute);
 app.use("/profile", facultyRoute);
+app.use("/courses", courseRoute);
 
 // Example route for testing
 app.get("/", (req, res) => {
