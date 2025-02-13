@@ -35,5 +35,11 @@ const getCoordinatorById = async (facultyId) => {
   return rows.length > 0 ? rows[0] : null;
 };
 
+// Function to fetch all faculty by department ID
+const getFacultyByDept = async (deptId) => {
+  const query = 'SELECT faculty_id, name, email, mobile_no FROM Faculty WHERE dept_id = ?';
+  const [results] = await db.query(query, [deptId]);
+  return results;
+};
 
-module.exports = { getFacultyById,getAdminById,getCoordinatorById };
+module.exports = { getFacultyById,getAdminById,getCoordinatorById,getFacultyByDept };
