@@ -14,8 +14,8 @@ const getCourses = async (req, res) => {
       return res.status(404).json({ message: 'Course not found' });
     }
 
-    console.log('✅ Course found:', results[0]);
-    res.json(results[0]);
+    console.log('✅ Course found:', results);
+    res.json(results);
 
   } catch (err) {
     console.error('❌ Error fetching course:', err);
