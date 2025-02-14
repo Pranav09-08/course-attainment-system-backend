@@ -1,10 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
-const authLoginRoute = require("./routes/authLoginRoute");      // ✅ Login Route
-const facultyRoute = require('./routes/profileRoute');          // ✅ Profile Route
-const dashboardRoutes = require("./routes/dashboardAuth");    // ✅ Dashboard Route
+const authLoginRoute = require("./routes/authLoginRoute"); // Login route
+const facultyRoute = require('./routes/profileRoute');
 
 const app = express();
 
@@ -13,10 +11,9 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 
-// ✅ API Routes
-app.use("/auth", authLoginRoute);         // Authentication Route (Login)
-app.use("/profile", facultyRoute);        // Profile Route
-app.use("/dashboard", dashboardRoutes);   // Protected Dashboard Routes (with roles)
+// Define API routes
+app.use("/auth", authLoginRoute);
+app.use("/profile", facultyRoute);
 
 // ✅ Example route for testing
 app.get("/", (req, res) => {
