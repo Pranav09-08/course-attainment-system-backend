@@ -1,17 +1,16 @@
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
 
-const LoginMiddleware = function (req, res, next) {
-  const token = req.header("Authorization");
-  if (!token) return res.status(401).json({ msg: "No token, authorization denied" });
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+  if (!token) return res.status(401).json({ msg: "Access Denied. No Token Provided." });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ msg: "Invalid Token" });
+    req.user = user; // Attach user info to the request
     next();
-  } catch (err) {
-    res.status(401).json({ msg: "Invalid token" });
-  }
+  });
 };
 
-module.exports = { LoginMiddleware };
+module.exports = authenticateToken;

@@ -4,7 +4,7 @@ require("dotenv").config();
 
 // Generate Access Token with user role
 const generateAccessToken = (userId, role) => {
-  return jwt.sign({ id: userId, role: role }, process.env.JWT_SECRET, { expiresIn: "15m" });
+  return jwt.sign({ id: userId, role: role }, process.env.JWT_SECRET, { expiresIn: "15d" });
 };
 
 // User Login

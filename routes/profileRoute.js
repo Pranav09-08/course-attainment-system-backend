@@ -7,4 +7,7 @@ router.get('/faculty/:id', facultyController.getFaculty);
 router.get('/admin/:id',facultyController.getAdmin);
 router.get('/coordinator/:id',facultyController.getCoordinator);
 
+// Route to get all faculty by department ID
+router.get('/faculty/department/:deptId', facultyController.getFacultyByDepartment);
+
 module.exports = router;
