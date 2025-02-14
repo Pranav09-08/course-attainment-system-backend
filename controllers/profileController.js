@@ -26,7 +26,7 @@ const getFaculty = async (req, res) => {
 };
 
 
-// Handle GET request for faculty by ID
+// Handle GET request for admin by ID
 const getAdmin = async (req, res) => {
   const adminId = req.params.id;
   console.log(`📥 Request received for Admin ID: ${adminId}`);
@@ -74,5 +74,29 @@ const getCoordinator = async (req, res) => {
   }
 };
 
+// Handle GET request for all faculty by department ID
+const getFacultyByDepartment = async (req, res) => {
+  const deptId = req.params.deptId; // Extract dept_id from request params
+  console.log(`📥 Request received for Faculty List of Dept ID: ${deptId}`);
 
-module.exports = { getFaculty,getAdmin,getCoordinator };
+  try {
+    // Fetch faculty using the model
+    const results = await Faculty.getFacultyByDept(deptId);
+
+    if (results.length === 0) {
+      console.log('❗ No faculty found for this department');
+      return res.status(404).json({ message: 'No faculty found for this department' });
+    }
+
+    console.log('✅ Faculty list retrieved:', results);
+    res.json(results);
+
+  } catch (err) {
+    console.error('❌ Error fetching faculty:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
+module.exports = { getFaculty,getAdmin,getCoordinator,getFacultyByDepartment};
