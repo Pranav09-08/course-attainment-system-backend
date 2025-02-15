@@ -9,6 +9,7 @@ const authLoginRoute = require("./routes/authLoginRoute");      // ✅ Login Rou
 const facultyRoute = require('./routes/profileRoute');          // ✅ Profile Route
 const dashboardRoutes = require("./routes/dashboardAuth");    // ✅ Dashboard Route
 const adminRoutes = require('./routes/adminRoute');           //Admin Route
+const attainmentRoutes = require('./routes/attainmentRoutes');
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(bodyParser.json());
 // Define API routes
 app.use("/courses", courseRoute);
 app.use("/faculty_courses",facultRoute2);
+app.use("/api", attainmentRoutes);
 
 // ✅ API Routes
 app.use("/auth", authLoginRoute);         // Authentication Route (Login)
