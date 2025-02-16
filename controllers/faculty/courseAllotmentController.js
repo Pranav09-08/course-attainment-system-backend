@@ -1,5 +1,5 @@
 
-const Faculty = require('../models/courseAllotmentModel');
+const Faculty = require('../../models/faculty/courseAllotmentModel');
 
 // Handle GET request for faculty by ID
 const getFaculty = async (req, res) => {

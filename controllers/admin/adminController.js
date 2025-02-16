@@ -1,7 +1,10 @@
-const Admin = require('../models/adminModel');
+const Admin = require('../../models/admin/adminModel');
 
 // Add a new faculty member
 const addFaculty = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
   const { faculty_id, name, email, mobile_no, dept_id, password } = req.body;
 
   console.log(`📥 Request to add new faculty: ${faculty_id}, ${name}, ${email}, Dept: ${dept_id}`);
@@ -25,6 +28,9 @@ const addFaculty = async (req, res) => {
 
 // Update faculty details
 const updateFaculty = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
     const { faculty_id } = req.params;
     const { name, email, mobile_no, dept_id, password } = req.body;
   
@@ -52,6 +58,9 @@ const updateFaculty = async (req, res) => {
 
   // Delete faculty details
 const deleteFaculty = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
     const { faculty_id } = req.params;
   
     console.log(`🗑️ Request to delete faculty: ${faculty_id}`);

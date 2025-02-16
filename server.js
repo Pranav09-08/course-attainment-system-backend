@@ -3,13 +3,13 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 
-const courseRoute =require('./routes/coursesRoute');
-const facultRoute2 =require('./routes/courseAllotmentRoute');
+const courseRoute =require('./routes/faculty/coursesRoute');
+const facultRoute2 =require('./routes/faculty/courseAllotmentRoute');
 const authLoginRoute = require("./routes/authLoginRoute");      // ✅ Login Route
 const facultyRoute = require('./routes/profileRoute');          // ✅ Profile Route
 const dashboardRoutes = require("./routes/dashboardAuth");    // ✅ Dashboard Route
-const adminRoutes = require('./routes/adminRoute');           //Admin Route
-const attainmentRoutes = require('./routes/attainmentRoutes');
+const adminRoutes = require('./routes/admin/adminRoute');           //Admin Route
+const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
 
 
 const app = express();

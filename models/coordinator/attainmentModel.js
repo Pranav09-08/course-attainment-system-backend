@@ -1,4 +1,4 @@
-const db = require("../db/db"); // Import database connection
+const db = require("../../db/db"); // Import database connection
 
 const AttainmentModel = {
     // Get courses coordinated by a faculty member
