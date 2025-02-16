@@ -17,14 +17,37 @@ const Models = {
     
     // Set or update course targets
     setCourseTargets: async ({ course_id, dept_id, academic_yr, target1, target2, target3, sppu1, sppu2, sppu3 }) => {
+        // Fetch current values from the database
+        const [existing] = await db.execute(
+            `SELECT target1, target2, target3, sppu1, sppu2, sppu3 FROM Course_Target 
+             WHERE course_id = ? AND dept_id = ? AND academic_yr = ?`,
+            [course_id, dept_id, academic_yr]
+        );
+    
+        // Extract existing row if found
+        const existingRow = existing.length ? existing[0] : {};
+    
+        // Use existing values if the new values are undefined
+        target1 = target1 !== undefined ? target1 : existingRow.target1;
+        target2 = target2 !== undefined ? target2 : existingRow.target2;
+        target3 = target3 !== undefined ? target3 : existingRow.target3;
+        sppu1 = sppu1 !== undefined ? sppu1 : existingRow.sppu1;
+        sppu2 = sppu2 !== undefined ? sppu2 : existingRow.sppu2;
+        sppu3 = sppu3 !== undefined ? sppu3 : existingRow.sppu3;
+    
+        // Insert or update the record dynamically
         const query = `
             INSERT INTO Course_Target (course_id, dept_id, academic_yr, target1, target2, target3, sppu1, sppu2, sppu3)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE 
-                target1 = VALUES(target1), target2 = VALUES(target2), target3 = VALUES(target3),
-                sppu1 = VALUES(sppu1), sppu2 = VALUES(sppu2), sppu3 = VALUES(sppu3);
+                target1 = ?, target2 = ?, target3 = ?, sppu1 = ?, sppu2 = ?, sppu3 = ?;
         `;
-        await db.execute(query, [course_id, dept_id, academic_yr, target1, target2, target3, sppu1, sppu2, sppu3]);
+    
+        await db.execute(query, [
+            course_id, dept_id, academic_yr, target1, target2, target3, sppu1, sppu2, sppu3,
+            target1, target2, target3, sppu1, sppu2, sppu3 // Update values
+        ]);
+    
         return { message: "Targets updated successfully" };
     }
 };
