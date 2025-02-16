@@ -4,6 +4,10 @@ const Controllers = {
     // Get courses assigned to a faculty
     getCourses: async (req, res) => {
         try {
+            if(req.user.role !== "coordinator") {
+                return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+            }
+
             const { faculty_id } = req.params;
             const courses = await Models.getCoursesByFaculty(faculty_id);
             res.json(courses);
@@ -16,6 +20,9 @@ const Controllers = {
     // Set course targets
     setTargets: async (req, res) => {
         try {
+            if(req.user.role !== "coordinator") {
+                return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+            }
             const result = await Models.setCourseTargets(req.body);
             res.json(result);
         } catch (error) {
