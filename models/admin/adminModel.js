@@ -1,4 +1,4 @@
-const db = require('../db/db');
+const db = require('../../db/db');
 
 // Function to add a new faculty member with manually provided faculty_id
 const createFaculty = async (faculty_id, name, email, mobile_no, dept_id, password) => {

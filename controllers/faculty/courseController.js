@@ -1,5 +1,5 @@
-const db = require('../db/db');
-const Course = require('../models/courseModel');
+const db = require('../../db/db');
+const Course = require('../../models/faculty/courseModel');
 
 // Handle GET request for faculty by ID
 const getCourses = async (req, res) => {

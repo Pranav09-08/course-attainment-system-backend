@@ -1,4 +1,4 @@
-const db = require('../db/db');
+const db = require('../../db/db');
 
 // Function to fetch faculty course allotment by ID
 const getFacultyById = async (facultyId) => {
