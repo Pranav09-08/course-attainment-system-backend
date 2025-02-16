@@ -10,6 +10,7 @@ const facultyRoute = require('./routes/profileRoute');          // ✅ Profile R
 const dashboardRoutes = require("./routes/dashboardAuth");    // ✅ Dashboard Route
 const adminRoutes = require('./routes/admin/adminRoute');           //Admin Route
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
+const setTarget = require('./routes/coordinator/setTargetRoute')
 
 
 const app = express();
@@ -23,7 +24,8 @@ app.use(bodyParser.json());
 // Define API routes
 app.use("/courses", courseRoute);
 app.use("/faculty_courses",facultRoute2);
-app.use("/api", attainmentRoutes);
+app.use("/attainment", attainmentRoutes);
+app.use('/set_target', setTarget);
 
 // ✅ API Routes
 app.use("/auth", authLoginRoute);         // Authentication Route (Login)
