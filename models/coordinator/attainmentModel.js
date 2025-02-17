@@ -20,7 +20,7 @@ const AttainmentModel = {
         try {
             const [result] = await db.execute(query, [faculty_id]);
             console.log('Courses by Coordinator Result:', result);  // Log the result to check
-            return result;
+            return [result];
         } catch (error) {
             console.error('Error fetching courses:', error);
             throw error;
