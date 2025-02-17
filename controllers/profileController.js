@@ -88,7 +88,7 @@ const getFacultyByDepartment = async (req, res) => {
       return res.status(404).json({ message: 'No faculty found for this department' });
     }
 
-    console.log('✅ Faculty list retrieved:', results);
+    console.log('✅ Faculty list retrieved:', results);  // Check if 'password' is included in the results
     res.json(results);
 
   } catch (err) {
@@ -96,6 +96,7 @@ const getFacultyByDepartment = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 
