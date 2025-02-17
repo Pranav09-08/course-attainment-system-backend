@@ -1,13 +1,16 @@
-
 const Faculty = require('../../models/faculty/courseAllotmentModel');
 
-// Handle GET request for faculty by ID
 const getFaculty = async (req, res) => {
   const facultyId = req.params.id;
+
+  // Validate facultyId to be a number
+  if (!Number.isInteger(Number(facultyId))) {
+    return res.status(400).json({ message: 'Invalid Faculty ID' });
+  }
+
   console.log(`📥 Request received for Faculty ID: ${facultyId}`);
 
   try {
-
     // Fetch faculty using the model
     const results = await Faculty.getFacultyById(facultyId);
 

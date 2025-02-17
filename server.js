@@ -1,44 +1,47 @@
+require('dotenv').config(); // Load environment variables first
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-
-const courseRoute =require('./routes/faculty/coursesRoute');
-const facultRoute2 =require('./routes/faculty/courseAllotmentRoute');
-const authLoginRoute = require("./routes/authLoginRoute");      // ✅ Login Route
-const facultyRoute = require('./routes/profileRoute');          // ✅ Profile Route
-const dashboardRoutes = require("./routes/dashboardAuth");    // ✅ Dashboard Route
-const adminRoutes = require('./routes/admin/adminRoute');           //Admin Route
+// Existing routes
+const courseRoute = require('./routes/faculty/coursesRoute');
+const facultRoute2 = require('./routes/faculty/courseAllotmentRoute');
+const authLoginRoute = require("./routes/authLoginRoute");
+const facultyRoute = require('./routes/profileRoute');
+const dashboardRoutes = require("./routes/dashboardAuth");
+const adminRoutes = require('./routes/admin/adminRoute');
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
-const setTarget = require('./routes/coordinator/setTargetRoute')
+const setTarget = require('./routes/coordinator/setTargetRoute');
 
+// New contact route
+const contactRoute = require("./routes/contactRoute");
 
 const app = express();
 
-// ✅ Middleware setup
+// Middleware setup
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 
-
 // Define API routes
 app.use("/courses", courseRoute);
-app.use("/faculty_courses",facultRoute2);
+app.use("/faculty_courses", facultRoute2);
 app.use("/attainment", attainmentRoutes);
-app.use('/set_target', setTarget);
+app.use("/set_target", setTarget);
+app.use("/auth", authLoginRoute);
+app.use("/profile", facultyRoute);
+app.use("/dashboard", dashboardRoutes);
+app.use("/admin", adminRoutes);
 
-// ✅ API Routes
-app.use("/auth", authLoginRoute);         // Authentication Route (Login)
-app.use("/profile", facultyRoute);        // Profile Route
-app.use("/dashboard", dashboardRoutes);   // Protected Dashboard Routes (with roles)
-app.use("/admin",adminRoutes);            // admin Route
+// New contact route
+app.use("/contact", contactRoute);
 
-// ✅ Example route for testing
+// Example route for testing
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
 });
 
-// ✅ Start the server
+// Start the server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
