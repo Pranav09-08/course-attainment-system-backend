@@ -37,8 +37,8 @@ const getCoordinatorById = async (facultyId) => {
 
 // Function to fetch all faculty by department ID
 const getFacultyByDept = async (deptId) => {
-  const query = 'SELECT faculty_id, name, email, mobile_no FROM Faculty WHERE dept_id = ?';
-  const [results] = await db.query(query, [deptId]);
+  const query = 'SELECT faculty_id, name, email, mobile_no, password FROM Faculty WHERE dept_id = ?';
+  const [results] = await db.query(query, [deptId]);  // Ensure the query is correct and db connection works
   return results;
 };
 
