@@ -3,7 +3,7 @@ const AttainmentModel = require("../../models/coordinator/attainmentModel");
 // Get attainment data for a course coordinator
 const getAttainmentData = async (req, res) => {
     try {
-        if (req.user.role !== "coordinator") {
+        if (req.user.role !== "coordinator" && req.user.role !== "faculty") {
             return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
         }
 

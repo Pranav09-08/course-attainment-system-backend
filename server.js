@@ -12,6 +12,7 @@ const dashboardRoutes = require("./routes/dashboardAuth");
 const adminRoutes = require('./routes/admin/adminRoute');
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
 const setTarget = require('./routes/coordinator/setTargetRoute');
+const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
 
 // New contact route
 const contactRoute = require("./routes/contactRoute");
@@ -35,7 +36,7 @@ app.use("/admin", adminRoutes);
 
 // New contact route
 app.use("/contact", contactRoute);
-
+app.use('/marks', marksRoutes);
 // Example route for testing
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
