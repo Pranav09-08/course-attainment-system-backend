@@ -13,6 +13,7 @@ const adminRoutes = require('./routes/admin/adminRoute');
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
 const setTarget = require('./routes/coordinator/setTargetRoute');
 const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
+const addmarks =require('./routes/faculty/marksRoute');
 
 // New contact route
 const contactRoute = require("./routes/contactRoute");
@@ -37,6 +38,7 @@ app.use("/admin", adminRoutes);
 // New contact route
 app.use("/contact", contactRoute);
 app.use('/marks', marksRoutes);
+app.use('/add_marks',addmarks);
 // Example route for testing
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
