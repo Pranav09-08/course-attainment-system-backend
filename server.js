@@ -13,6 +13,7 @@ const adminRoutes = require('./routes/admin/adminRoute');
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
 const setTarget = require('./routes/coordinator/setTargetRoute');
 const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
+const adminCourseRoute = require('./routes/admin/courseRoute');
 
 // New contact route
 const contactRoute = require("./routes/contactRoute");
@@ -33,6 +34,7 @@ app.use("/auth", authLoginRoute);
 app.use("/profile", facultyRoute);
 app.use("/dashboard", dashboardRoutes);
 app.use("/admin", adminRoutes);
+app.use("/admin/course", adminCourseRoute);
 
 // New contact route
 app.use("/contact", contactRoute);
