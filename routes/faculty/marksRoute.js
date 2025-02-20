@@ -1,19 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
-const marksController = require('../../controllers/faculty/marksController');
-const authenticateToken = require("../../middleware/authLoginMiddleware");
-// Multer storage for file upload
-const storage = multer.diskStorage({
-  destination: './uploads/',
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
+const marksController = require("../../controllers/faculty/marksController");
+const multer = require("multer");
 
-const upload = multer({ storage });
+// Multer for handling file uploads
+const upload = multer({ dest: "uploads/" });
 
-// API route for mark upload (protected)
-router.post('/upload-marks', authenticateToken, upload.single('file'), marksController.uploadMarks);
+// Route for uploading marks via CSV
+router.post("/upload_marks", upload.single("file"), marksController.uploadMarks);
 
 module.exports = router;
