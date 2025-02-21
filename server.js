@@ -13,11 +13,10 @@ const adminRoutes = require('./routes/admin/adminRoute');
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
 const setTarget = require('./routes/coordinator/setTargetRoute');
 const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
-<<<<<<< HEAD
+
 const adminCourseRoute = require('./routes/admin/courseRoute');
-=======
+
 const addmarks =require('./routes/faculty/marksRoute');
->>>>>>> Jagruti
 
 // New contact route
 const contactRoute = require("./routes/contactRoute");
