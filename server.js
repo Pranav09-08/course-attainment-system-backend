@@ -13,10 +13,9 @@ const adminRoutes = require('./routes/admin/adminRoute');
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
 const setTarget = require('./routes/coordinator/setTargetRoute');
 const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
-
 const adminCourseRoute = require('./routes/admin/courseRoute');
-
 const addmarks =require('./routes/faculty/marksRoute');
+
 
 // New contact route
 const contactRoute = require("./routes/contactRoute");
