@@ -1,47 +1,95 @@
 const db = require("../../db/db");
 
-const insertMarks = async (marksData) => {
+const insertOrUpdateMarks = async (marksData, studentClass) => {
   try {
-    // Step 1: Fetch all valid student roll numbers
-    const [students] = await db.query("SELECT roll_no FROM Student");
+    // Fetch all valid student roll numbers for the given class
+    const [students] = await db.query("SELECT roll_no FROM Student WHERE class = ?", [studentClass]);
     const validRollNumbers = new Set(students.map((student) => student.roll_no));
 
-    // Step 2: Filter marksData to include only valid students
+    // Filter marksData to include only valid students in the given class
     const validMarksData = marksData.filter((mark) => validRollNumbers.has(mark.roll_no));
 
     if (validMarksData.length === 0) {
-      console.log("⚠️ No valid students found for inserting marks.");
+      console.log("No valid students found for inserting marks.");
       return { message: "No valid students found." };
     }
 
-    // Step 3: Insert only valid students' marks into the Marks table
-    const query = `
-      INSERT INTO Marks (roll_no, course_id, u1_co1, u1_co2, u2_co3, u2_co4, u3_co5, u3_co6, i_co1, i_co2, end_sem, final_sem, academic_yr, sem)
-      VALUES ?`;
+    // Check for existing UT1 marks before inserting UT2, UT3, or In-Sem/Final marks
+    for (const mark of validMarksData) {
+      const [existingMarks] = await db.query(
+        "SELECT u1_co1, u1_co2 FROM Marks WHERE roll_no = ? AND course_id = ? AND academic_yr = ? AND sem = ?",
+        [mark.roll_no, mark.course_id, mark.academic_yr, mark.sem]
+      );
 
-    const values = validMarksData.map((mark) => [
-      mark.roll_no,
-      mark.course_id,
-      mark.u1_co1 || null,
-      mark.u1_co2 || null,
-      mark.u2_co3 || null,
-      mark.u2_co4 || null,
-      mark.u3_co5 || null,
-      mark.u3_co6 || null,
-      mark.i_co1 || null,
-      mark.i_co2 || null,
-      mark.end_sem || null,
-      mark.final_sem || null,
-      mark.academic_yr,
-      mark.sem,
-    ]);
+      // If inserting UT2, UT3, In-Sem, or Final, check if UT1 exists
+      if (
+        (mark.u2_co3 || mark.u2_co4 || mark.u3_co5 || mark.u3_co6 || mark.i_co1 || mark.i_co2 || mark.end_sem) &&
+        (!existingMarks.length || !existingMarks[0] || existingMarks[0].u1_co1 === null || existingMarks[0].u1_co2 === null)
+      ) {
+        console.log(`⛔ Cannot insert marks for Roll No: ${mark.roll_no} as UT1 marks are missing.`);
+        continue;
+      }
+      
+      // If student already exists, update marks
+      if (existingMarks.length > 0) {
+        await db.query(
+          `UPDATE Marks 
+           SET u1_co1 = COALESCE(?, u1_co1),
+               u1_co2 = COALESCE(?, u1_co2),
+               u2_co3 = COALESCE(?, u2_co3),
+               u2_co4 = COALESCE(?, u2_co4),
+               u3_co5 = COALESCE(?, u3_co5),
+               u3_co6 = COALESCE(?, u3_co6),
+               i_co1 = COALESCE(?, i_co1),
+               i_co2 = COALESCE(?, i_co2),
+               end_sem = COALESCE(?, end_sem)
+           WHERE roll_no = ? AND course_id = ? AND academic_yr = ? AND sem = ?`,
+          [
+            mark.u1_co1,
+            mark.u1_co2,
+            mark.u2_co3,
+            mark.u2_co4,
+            mark.u3_co5,
+            mark.u3_co6,
+            mark.i_co1,
+            mark.i_co2,
+            mark.end_sem,
+            mark.roll_no,
+            mark.course_id,
+            mark.academic_yr,
+            mark.sem,
+          ]
+        );
+      } else {
+        // Insert new record if student doesn't exist
+        await db.query(
+          `INSERT INTO Marks 
+           (roll_no, course_id, u1_co1, u1_co2, u2_co3, u2_co4, u3_co5, u3_co6, i_co1, i_co2, end_sem, academic_yr, sem)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            mark.roll_no,
+            mark.course_id,
+            mark.u1_co1,
+            mark.u1_co2,
+            mark.u2_co3,
+            mark.u2_co4,
+            mark.u3_co5,
+            mark.u3_co6,
+            mark.i_co1,
+            mark.i_co2,
+            mark.end_sem,
+            mark.academic_yr,
+            mark.sem,
+          ]
+        );
+      }
+    }
+    return { success: true, message: "Marks inserted/updated successfully" };
 
-    const [result] = await db.query(query, [values]);
-    return result;
   } catch (error) {
-    console.error("❌ Error inserting marks:", error);
-    throw new Error("Database insert failed");
+    console.error("❌ Error inserting/updating marks:", error);
+    throw new Error("Database insert/update failed");
   }
 };
 
-module.exports = { insertMarks };
+module.exports = { insertOrUpdateMarks };
