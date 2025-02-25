@@ -16,6 +16,7 @@ const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
 const adminCourseRoute = require('./routes/admin/courseRoute');
 
 const addmarks =require('./routes/faculty/marksRoute');
+const courseAllotmentRoutes = require("./routes/admin/courseAllotmentRoute");
 
 
 // New contact route
@@ -38,6 +39,7 @@ app.use("/profile", facultyRoute);
 app.use("/dashboard", dashboardRoutes);
 app.use("/admin", adminRoutes);
 app.use("/admin/course", adminCourseRoute);
+app.use("/admin/allotment", courseAllotmentRoutes);
 
 // New contact route
 app.use("/contact", contactRoute);
