@@ -5,18 +5,20 @@ const AttainmentModel = {
     getCoursesByCoordinator: async (faculty_id) => {
         const query = `
             SELECT 
-                cc.course_id, 
-                c.course_name,   -- Fetch course_name from Course table
-                cc.class, 
-                cc.sem, 
-                cc.dept_id, 
-                cc.attainment_score, 
-                cc.academic_yr 
-            FROM Course_Coordinator AS cc
-            JOIN Course AS c ON cc.course_id = c.course_id
-            WHERE cc.faculty_id = ?;
+        cc.course_id, 
+        c.course_name,   -- Fetch course_name from Course table
+        cc.class, 
+        cc.sem, 
+        d.dept_name,  -- Fetch dept_name from Department table
+        cc.attainment_score, 
+        cc.academic_yr 
+        FROM Course_Coordinator AS cc
+        JOIN Course AS c ON cc.course_id = c.course_id
+        JOIN Department AS d ON cc.dept_id = d.dept_id  -- Join Department table
+        WHERE cc.faculty_id = ?;
+
         `;
-    
+
         try {
             const [result] = await db.execute(query, [faculty_id]);
             console.log('Courses by Coordinator Result:', result);  // Log the result to check
@@ -26,7 +28,7 @@ const AttainmentModel = {
             throw error;
         }
     },
-    
+
 
     // Get 10 rows from Level_Target
     getLevelTargetByCourse: async (course_id, academic_yr) => {
