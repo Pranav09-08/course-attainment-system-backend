@@ -10,6 +10,7 @@ const AttainmentModel = {
         cc.class, 
         cc.sem, 
         d.dept_name,  -- Fetch dept_name from Department table
+        d.dept_id,
         cc.attainment_score, 
         cc.academic_yr 
         FROM Course_Coordinator AS cc
@@ -44,8 +45,17 @@ const AttainmentModel = {
     // Get 1 row from Calculate_Attainment
     getCalculateAttainmentByCourse: async (course_id, academic_yr) => {
         const query = `
-            SELECT * FROM Calculate_Attainment 
-            WHERE course_id = ? AND academic_yr = ?;
+            SELECT d.dept_name,ca.course_id, 
+    ca.academic_yr, 
+    ca.ut_attainment, 
+    ca.insem_attainment, 
+    ca.endsem_attainment, 
+    ca.final_attainment, 
+    ca.total  -- Select all columns from Calculate_Attainment and add dept_name
+FROM Calculate_Attainment AS ca
+LEFT JOIN Department AS d ON ca.dept_id = d.dept_id  -- Join with Department table
+WHERE ca.course_id = ? AND ca.academic_yr = ?;
+
         `;
         const result = await db.execute(query, [course_id, academic_yr]);
         console.log('Calculate Attainment Result:', result);  // Log the result to check
