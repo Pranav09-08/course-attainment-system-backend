@@ -15,6 +15,7 @@ const setTarget = require('./routes/coordinator/setTargetRoute');
 const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
 const adminCourseRoute = require('./routes/admin/courseRoute');
 const adminCourseCoordinatorRoute = require('./routes/admin/courseCoordinatorRoute');
+const courseReportRoutes = require('./routes/coordinator/courseReportRouter');
 
 const addmarks =require('./routes/faculty/marksRoute');
 const courseAllotmentRoutes = require("./routes/admin/courseAllotmentRoute");
@@ -34,6 +35,7 @@ app.use(bodyParser.json());
 app.use("/courses", courseRoute);
 app.use("/faculty_courses", facultRoute2);
 app.use("/attainment", attainmentRoutes);
+app.use("/report",courseReportRoutes);
 app.use("/set_target", setTarget);
 app.use("/auth", authLoginRoute);
 app.use("/profile", facultyRoute);
