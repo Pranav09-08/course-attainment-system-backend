@@ -58,28 +58,26 @@ const generateReport = async (req, res) => {
       return res.status(500).send('Marks data is empty');
     }
 
-    // Combine Target data and Marks data into one sheet
-    const combinedData = [
-      ...targetSheetData,  // Append Target data first
-      {}, {}, {}, {}, // Add empty rows for spacing
-      ...marksSheetData  // Append Marks data after empty rows
-    ];
+    // Manually check the sheet creation
+    const marksSheet = xlsx.utils.json_to_sheet(marksSheetData);
+    console.log('Marks Sheet Created:', marksSheet);  // Log sheet creation to ensure it worked
 
-    // Create Excel sheet
-    const sheet = xlsx.utils.json_to_sheet(combinedData);
-    console.log('Combined Sheet Created:', sheet);  // Log sheet creation to ensure it worked
+    // Create Excel sheets
+    const targetSheet = xlsx.utils.json_to_sheet(targetSheetData);
+    console.log('Target Sheet Created:', targetSheet);  // Log target sheet creation to ensure it worked
 
     // Create a new workbook
     const wb = xlsx.utils.book_new();
 
-    // Add the single sheet to the workbook
-    xlsx.utils.book_append_sheet(wb, sheet, 'Course Report');
+    // Add both sheets to the workbook
+    xlsx.utils.book_append_sheet(wb, targetSheet, 'Target');
+    xlsx.utils.book_append_sheet(wb, marksSheet, 'Marks');
 
-    // Check if the workbook has the expected sheet
+    // Check if the workbook has the expected sheets
     console.log('Workbook sheets:', wb.SheetNames);  // Log the sheet names in the workbook
 
     // Define the file path for saving
-    const filePath = `./course_report_${Date.now()}.xlsx`;
+    const filePath = "./course_report_${Date.now()}.xlsx";
 
     // Write the workbook to the file
     xlsx.writeFile(wb, filePath);
