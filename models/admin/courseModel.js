@@ -13,13 +13,13 @@ const getCourseById = async (course_id) => {
 };
 
 // Function to add a new course
-const createCourse = async (course_id, course_name, ut, insem, endsem, finalsem) => {
+const createCourse = async (course_id, course_name, ut, insem, endsem, finalsem, course_class) => {
   const query = `
-    INSERT INTO Course (course_id, course_name, ut, insem, endsem, finalsem)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO Course (course_id, course_name, ut, insem, endsem, finalsem, class)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   try {
-    const [result] = await db.query(query, [course_id, course_name, ut, insem, endsem, finalsem]);
+    const [result] = await db.query(query, [course_id, course_name, ut, insem, endsem, finalsem, course_class]);
     return result;
   } catch (error) {
     console.error("❌ Error inserting course:", error);
@@ -52,14 +52,14 @@ const deleteCourseById = async (course_id) => {
 };
 
 // Function to update course details
-const updateCourseById = async (course_id, course_name, ut, insem, endsem, finalsem) => {
+const updateCourseById = async (course_id, course_name, ut, insem, endsem, finalsem, course_class) => {
   const query = `
     UPDATE Course 
-    SET course_name = ?, ut = ?, insem = ?, endsem = ?, finalsem = ?
+    SET course_name = ?, ut = ?, insem = ?, endsem = ?, finalsem = ?, class = ?
     WHERE course_id = ?
   `;
   try {
-    const [result] = await db.query(query, [course_name, ut, insem, endsem, finalsem, course_id]);
+    const [result] = await db.query(query, [course_name, ut, insem, endsem, finalsem, course_class, course_id]);
     return result.affectedRows; // Returns number of updated rows
   } catch (error) {
     console.error("❌ Error updating course:", error);
@@ -67,4 +67,4 @@ const updateCourseById = async (course_id, course_name, ut, insem, endsem, final
   }
 };
 
-module.exports = { getCourseById, createCourse, getAllCourses, deleteCourseById,updateCourseById};
+module.exports = { getCourseById, createCourse, getAllCourses, deleteCourseById, updateCourseById };
