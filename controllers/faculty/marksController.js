@@ -7,13 +7,13 @@ const uploadMarks = async (req, res) => {
     return res.status(400).json({ message: "No file uploaded" });
   }
 
-  const { course_id, academic_yr, sem, class: studentClass } = req.body;
-  if (!course_id || !academic_yr || !sem || !studentClass) {
-    return res.status(400).json({ message: "Missing course_id, academic_yr, sem, or class" });
+  const { course_id, academic_yr, sem, class: studentClass,dept_id } = req.body;
+  if (!course_id || !academic_yr || !sem || !studentClass || !dept_id) {
+    return res.status(400).json({ message: "Missing course_id, academic_yr, sem, or class or dept_id" });
   }
 
   console.log(`📥 Received CSV file: ${req.file.filename}`);
-  console.log(`🔹 Course ID: ${course_id}, Academic Year: ${academic_yr}, Semester: ${sem}, Class: ${studentClass}`);
+  console.log(`🔹 Course ID: ${course_id}, Academic Year: ${academic_yr}, Semester: ${sem}, Class: ${studentClass}, Dept Id: ${dept_id}`);
 
   const filePath = req.file.path;
   const marksData = [];
@@ -35,13 +35,15 @@ const uploadMarks = async (req, res) => {
         end_sem: row.end_sem || null,
         academic_yr,
         sem,
+        dept_id,
       };
       marksData.push(validRow);
     })
     .on("end", async () => {
       try {
         console.log("✅ Parsed CSV successfully:", marksData.length, "records");
-        const result = await Marks.insertOrUpdateMarks(marksData, studentClass);
+        const result = await Marks.insertOrUpdateMarks(marksData, studentClass, academic_yr, dept_id);
+
     
         fs.unlinkSync(filePath); // Delete file after processing
     
