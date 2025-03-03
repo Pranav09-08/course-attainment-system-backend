@@ -148,3 +148,4 @@ const updateCourse = async (req, res) => {
 };
 
 module.exports = { addCourse, getCourses, deleteCourse, updateCourse };
+
