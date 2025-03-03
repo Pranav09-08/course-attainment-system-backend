@@ -37,9 +37,21 @@ const getMarksData = async (courseId, deptId, academicYear) => {
     const [results] = await db.query(query, [courseId, deptId, academicYear]);
     return results;
   };
+
+// Fetch Level Target data
+const getLevelTarget = async (courseId, deptId, academicYear) => {
+  const query = `
+    SELECT *
+    FROM Level_Target
+    WHERE course_id = ? AND dept_id = ? AND academic_yr = ?
+  `;
+  const [results] = await db.query(query, [courseId, deptId, academicYear]);
+  return results;
+};
   
 
 module.exports = {
   getCourseTarget,
-  getMarksData
+  getMarksData,
+  getLevelTarget
 };
