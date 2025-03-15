@@ -23,6 +23,7 @@ const insertOrUpdateMarks = async (marksData, studentClass, academic_yr, dept_id
         "SELECT u1_co1, u1_co2 FROM Marks WHERE roll_no = ? AND course_id = ? AND academic_yr = ? AND sem = ? AND dept_id = ?",
         [mark.roll_no, mark.course_id, academic_yr, mark.sem, dept_id]
       );
+
       
 
       // If inserting UT2, UT3, In-Sem, or Final, check if UT1 exists

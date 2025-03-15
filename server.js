@@ -19,7 +19,7 @@ const courseReportRoutes = require('./routes/coordinator/courseReportRouter');
 
 const addmarks =require('./routes/faculty/marksRoute');
 const courseAllotmentRoutes = require("./routes/admin/courseAllotmentRoute");
-
+const getStudentRoute =require('./routes/faculty/getStudentRoute');
 
 // New contact route
 const contactRoute = require("./routes/contactRoute");
@@ -49,6 +49,7 @@ app.use("/admin/coordinator",adminCourseCoordinatorRoute);
 app.use("/contact", contactRoute);
 app.use('/marks', marksRoutes);
 app.use('/add_marks',addmarks);
+app.use("/get_student",getStudentRoute);
 // Example route for testing
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
