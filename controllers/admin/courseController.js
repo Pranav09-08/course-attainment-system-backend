@@ -6,13 +6,14 @@ const addCourse = async (req, res) => {
     return res.status(403).json({ error: "Access denied. Only admins can add courses." });
   }
 
-  const { course_id, course_name, ut, insem, endsem, finalsem } = req.body;
+  const { course_id, course_name, ut, insem, endsem, finalsem, class: course_class } = req.body;
 
-  console.log(`📥 Request to add new course: ${course_id}, ${course_name}`);
+  console.log(`📥 Request to add new course: ${course_id}, ${course_name}, ${course_class}`);
 
   // 🔴 Step 1: Validate missing fields
   if (!course_id) return res.status(400).json({ error: "Course ID is required." });
   if (!course_name) return res.status(400).json({ error: "Course name is required." });
+  if (!course_class) return res.status(400).json({ error: "Class is required." });
   if (ut === undefined) return res.status(400).json({ error: "Unit Test marks are required." });
   if (insem === undefined) return res.status(400).json({ error: "In-Semester marks are required." });
   if (endsem === undefined) return res.status(400).json({ error: "End-Semester marks are required." });
@@ -32,7 +33,7 @@ const addCourse = async (req, res) => {
     }
 
     // Insert course into the database
-    await Course.createCourse(course_id, course_name, ut, insem, endsem, finalsem);
+    await Course.createCourse(course_id, course_name, ut, insem, endsem, finalsem, course_class);
 
     console.log(`✅ Course added successfully: ${course_id}`);
     res.status(201).json({ message: `${course_id} ${course_name} course added successfully.` });
@@ -104,7 +105,7 @@ const updateCourse = async (req, res) => {
   }
 
   const { course_id } = req.params;
-  const { course_name, ut, insem, endsem, finalsem } = req.body;
+  const { course_name, ut, insem, endsem, finalsem, class: course_class } = req.body;
 
   console.log(`📝 Request to update course: ${course_id}`);
 
@@ -112,6 +113,7 @@ const updateCourse = async (req, res) => {
   const missingFields = [];
   if (!course_id) missingFields.push("course_id");
   if (!course_name) missingFields.push("course_name");
+  if (!course_class) missingFields.push("class");
   if (ut === undefined) missingFields.push("ut");
   if (insem === undefined) missingFields.push("insem");
   if (endsem === undefined) missingFields.push("endsem");
@@ -119,15 +121,9 @@ const updateCourse = async (req, res) => {
 
   if (missingFields.length > 0) {
     return res.status(400).json({
-      error: `${missingFields.join(", ")} filed is missing`,
+      error: `${missingFields.join(", ")} field is missing`,
     });
   }
-
-  // 🔴 Step 2: Ensure numerical fields are valid integers
-  if (!Number.isInteger(ut)) return res.status(400).json({ error: "Unit Test marks (ut) must be an integer." });
-  if (!Number.isInteger(insem)) return res.status(400).json({ error: "In-Semester marks (insem) must be an integer." });
-  if (!Number.isInteger(endsem)) return res.status(400).json({ error: "End-Semester marks (endsem) must be an integer." });
-  if (!Number.isInteger(finalsem)) return res.status(400).json({ error: "Final Semester marks (finalsem) must be an integer." });
 
   try {
     // 🔴 Step 3: Check if the course exists
@@ -137,7 +133,7 @@ const updateCourse = async (req, res) => {
     }
 
     // 🔴 Step 4: Perform update
-    const updatedRows = await Course.updateCourseById(course_id, course_name, ut, insem, endsem, finalsem);
+    const updatedRows = await Course.updateCourseById(course_id, course_name, ut, insem, endsem, finalsem, course_class);
     if (updatedRows > 0) {
       console.log(`✅ Course updated successfully: ${course_id}`);
       return res.status(200).json({ message: `Course ${course_id} updated successfully.` });
@@ -151,4 +147,4 @@ const updateCourse = async (req, res) => {
   }
 };
 
-module.exports = { addCourse, getCourses,deleteCourse,updateCourse};
+module.exports = { addCourse, getCourses, deleteCourse, updateCourse };
