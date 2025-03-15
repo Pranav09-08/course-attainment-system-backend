@@ -33,6 +33,74 @@ const generateReport = async (req, res) => {
     }
     console.log('Level Target Data:', levelTargetData);
 
+    // Prepare response with only target and marks data
+    const responseData = {
+      target: {
+        target1: target.target1,
+        sppu1: target.sppu1,
+        target2: target.target2,
+        sppu2: target.sppu2,
+        target3: target.target3,
+        sppu3: target.sppu3,
+      },
+      marks: marksData.map((mark) => ({
+        rollNo: mark.roll_no,
+        studentName: mark.student_name,
+        co1: mark.u1_co1,
+        co2: mark.u1_co2,
+        co3: mark.u2_co3,
+        co4: mark.u2_co4,
+        co5: mark.u3_co5,
+        co6: mark.u3_co6,
+        ico1: mark.i_co1,
+        ico2: mark.i_co2,
+        endSem: mark.end_sem,
+        finalSem: mark.final_sem,
+      })),
+    };
+
+    // Send the response with target and marks data
+    res.status(200).json({
+      success: true,
+      message: 'Report data fetched successfully',
+      data: responseData,
+    });
+  } catch (err) {
+    console.error('Error generating report:', err);
+    res.status(500).send('Error generating report');
+  }
+};
+
+const downladReport = async (req, res) => {
+  const { courseId, deptId, academicYear } = req.query;
+
+  if (!courseId || !deptId || !academicYear) {
+    return res.status(400).send('Missing required parameters');
+  }
+
+  try {
+    // Fetch course target data
+    const targetData = await courseReportModel.getCourseTarget(courseId, deptId, academicYear);
+    if (targetData.length === 0) {
+      return res.status(404).send('No target data found');
+    }
+    const target = targetData[0];
+    console.log('Target Data:', target);
+
+    // Fetch marks data
+    const marksData = await courseReportModel.getMarksData(courseId, deptId, academicYear);
+    if (marksData.length === 0) {
+      return res.status(404).send('No marks data found');
+    }
+    console.log('Marks Data:', marksData);
+
+    // Fetch Level Target data
+    const levelTargetData = await courseReportModel.getLevelTarget(courseId, deptId, academicYear);
+    if (levelTargetData.length === 0) {
+      return res.status(404).send('No level target data found');
+    }
+    console.log('Level Target Data:', levelTargetData);
+
     // Prepare target data for the Excel sheet
     const targetSheetData = [
       ['Target', 'Unit Test', 'SPPU'],
@@ -133,6 +201,32 @@ const generateReport = async (req, res) => {
     xlsx.writeFile(wb, filePath);
     console.log('File created at:', filePath);
 
+    // Prepare response with only target and marks data
+    const responseData = {
+      target: {
+        target1: target.target1,
+        sppu1: target.sppu1,
+        target2: target.target2,
+        sppu2: target.sppu2,
+        target3: target.target3,
+        sppu3: target.sppu3,
+      },
+      marks: marksData.map((mark) => ({
+        rollNo: mark.roll_no,
+        studentName: mark.student_name,
+        co1: mark.u1_co1,
+        co2: mark.u1_co2,
+        co3: mark.u2_co3,
+        co4: mark.u2_co4,
+        co5: mark.u3_co5,
+        co6: mark.u3_co6,
+        ico1: mark.i_co1,
+        ico2: mark.i_co2,
+        endSem: mark.end_sem,
+        finalSem: mark.final_sem,
+      })),
+    };
+
     // Check if the file exists before attempting to send it
     if (fs.existsSync(filePath)) {
       console.log('File exists, sending download');
@@ -153,5 +247,5 @@ const generateReport = async (req, res) => {
 };
 
 module.exports = {
-  generateReport
+  generateReport,downladReport
 };
