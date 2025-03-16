@@ -1,4 +1,4 @@
-const { allotCourseCoordinator, getCourseCoordinatorsByDept } = require("../../models/admin/courseCoordinatorModel");
+const { allotCourseCoordinator, getCourseCoordinatorsByDept, updateCourseCoordinatorFaculty, deleteCourseCoordinator} = require("../../models/admin/courseCoordinatorModel");
 
 const allotCourseCoordinatorHandler = async (req, res) => {
     try {
@@ -53,4 +53,69 @@ const getCourseCoordinatorsByDeptHandler = async (req, res) => {
     }
 };
 
-module.exports = { allotCourseCoordinatorHandler, getCourseCoordinatorsByDeptHandler };
+const updateCourseCoordinatorFacultyHandler = async (req, res) => {
+    try {
+        const { courseId, academicYr, sem } = req.params;
+        const { faculty_id } = req.body;
+
+        console.log("📥 Received request to update faculty for course coordinator:", { courseId, academicYr, sem, faculty_id });
+
+        // Validate input
+        if (!courseId || !academicYr || !sem || !faculty_id) {
+            return res.status(400).json({ error: "courseId, academicYr, sem, and faculty_id are required" });
+        }
+
+        const result = await updateCourseCoordinatorFaculty(courseId, academicYr, sem, faculty_id);
+
+        if (result) {
+            console.log("✅ Faculty updated successfully");
+            return res.status(200).json({ message: "Faculty updated successfully", data: result });
+        } else {
+            return res.status(400).json({ error: "Failed to update faculty" });
+        }
+    } catch (err) {
+        console.error("❌ Error updating faculty:", err.message);
+
+        // Handle specific errors
+        if (err.message.includes("New faculty ID does not exist")) {
+            return res.status(404).json({ error: err.message });
+        } else if (err.message.includes("Course coordinator not found")) {
+            return res.status(404).json({ error: err.message });
+        } else {
+            return res.status(500).json({ error: "Internal Server Error", details: err.message });
+        }
+    }
+};
+
+const deleteCourseCoordinatorHandler = async (req, res) => {
+    try {
+      const { courseId, academicYr, sem } = req.params;
+  
+      console.log("📥 Received request to delete course coordinator:", { courseId, academicYr, sem });
+  
+      // Validate input
+      if (!courseId || !academicYr || !sem) {
+        return res.status(400).json({ error: "courseId, academicYr, and sem are required" });
+      }
+  
+      const result = await deleteCourseCoordinator(courseId, academicYr, sem);
+  
+      if (result) {
+        console.log("✅ Course Coordinator deleted successfully");
+        return res.status(200).json({ message: "Course Coordinator deleted successfully", data: result });
+      } else {
+        return res.status(400).json({ error: "Failed to delete course coordinator" });
+      }
+    } catch (err) {
+      console.error("❌ Error deleting course coordinator:", err.message);
+  
+      // Handle specific errors
+      if (err.message.includes("Course coordinator not found")) {
+        return res.status(404).json({ error: err.message });
+      } else {
+        return res.status(500).json({ error: "Internal Server Error", details: err.message });
+      }
+    }
+  };
+
+module.exports = { allotCourseCoordinatorHandler, getCourseCoordinatorsByDeptHandler, updateCourseCoordinatorFacultyHandler, deleteCourseCoordinatorHandler};
