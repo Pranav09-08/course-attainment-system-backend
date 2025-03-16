@@ -47,22 +47,79 @@ const getAllottedCourses = async (req, res) => {
     }
 };
 
-//function to update course allotment
-const updateCourseAllotment = async (req, res) => {
+//function to update the course allotment
+const updateCourseAllotmentFaculty = async (req, res) => {
     try {
-        const course_id = req.params.course_id; // Get course_id from URL params
-        const courseData = req.body;
+        const { courseId, academicYr, sem } = req.params;
+        const { faculty_id } = req.body;
 
-        console.log("📥 Received request to update course allotment:", course_id, courseData);
+        console.log("📥 Received request to update faculty for course allotment:", { courseId, academicYr, sem, faculty_id });
 
-        const result = await CourseAllotment.updateCourseAllotment(course_id, courseData);
+        // Validate courseId, academicYr, sem, and faculty_id
+        if (!courseId || !academicYr || !sem || !faculty_id) {
+            return res.status(400).json({ error: "courseId, academicYr, sem, and faculty_id are required" });
+        }
 
-        console.log("✅ Course allotment updated successfully");
-        return res.status(200).json(result);
+        const result = await CourseAllotment.updateCourseAllotmentFaculty(
+            courseId,
+            parseInt(academicYr),
+            sem,
+            parseInt(faculty_id)
+        );
+
+        if (result) {
+            console.log("✅ Faculty updated successfully");
+            return res.status(200).json({ message: "Faculty updated successfully", data: result });
+        } else {
+            return res.status(400).json({ error: "Failed to update faculty" });
+        }
     } catch (err) {
-        console.error("❌ Error updating course allotment:", err.message);
-        return res.status(400).json({ error: err.message });
+        console.error("❌ Error updating faculty:", err.message);
+
+        // 🔍 Handle specific errors
+        if (err.message.includes("Course allotment not found")) {
+            return res.status(404).json({ error: "Course allotment not found for the given courseId, academicYr, and sem" });
+        } else if (err.message.includes("New faculty ID does not exist")) {
+            return res.status(400).json({ error: "New faculty ID does not exist" });
+        } else if (err.message.includes("New faculty is already assigned")) {
+            return res.status(409).json({ error: "New faculty is already assigned to this course for the given academic year and semester" });
+        } else if (err.message.includes("Failed to update faculty ID")) {
+            return res.status(500).json({ error: "Failed to update faculty ID" });
+        } else {
+            return res.status(500).json({ error: "Internal Server Error", details: err.message });
+        }
     }
 };
 
-module.exports = { allotCourse,getAllottedCourses,updateCourseAllotment};
+const deleteCourseAllotment = async (req, res) => {
+    try {
+        const { courseId, academicYr, sem } = req.params;
+
+        console.log("📥 Received request to delete course allotment:", { courseId, academicYr, sem });
+
+        // Validate input
+        if (!courseId || !academicYr || !sem) {
+            return res.status(400).json({ error: "courseId, academicYr, and sem are required" });
+        }
+
+        const result = await CourseAllotment.deleteCourseAllotment(courseId, academicYr, sem);
+
+        if (result) {
+            console.log("✅ Course allotment deleted successfully");
+            return res.status(200).json({ message: "Course allotment deleted successfully", data: result });
+        } else {
+            return res.status(400).json({ error: "Failed to delete course allotment" });
+        }
+    } catch (err) {
+        console.error("❌ Error deleting course allotment:", err.message);
+
+        // Handle specific errors
+        if (err.message.includes("Course allotment not found")) {
+            return res.status(404).json({ error: "Course allotment not found" });
+        } else {
+            return res.status(500).json({ error: "Internal Server Error", details: err.message });
+        }
+    }
+};
+
+module.exports = { allotCourse,getAllottedCourses,updateCourseAllotmentFaculty,deleteCourseAllotment};
