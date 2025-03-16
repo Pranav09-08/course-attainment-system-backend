@@ -1,4 +1,4 @@
-const Student = require("../../models/admin/studentModel");
+const {uploadStudent,fetchStudentsByDepartment} = require("../../models/admin/studentModel");
 
 // Upload students via JSON (not file)
 const uploadStudents = async (req, res) => {
@@ -22,7 +22,7 @@ const uploadStudents = async (req, res) => {
     }
 
     // Insert students into the database
-    await Student.insertStudents(students);
+    await uploadStudent.insertStudents(students);
 
     res.status(201).json({ message: "✅ Students added successfully!" });
   } catch (err) {
@@ -43,4 +43,25 @@ const uploadStudents = async (req, res) => {
   }
 };
 
-module.exports = { uploadStudents };
+
+const getStudents = async (req, res) => {
+    try {
+      const { dept_id } = req.query; // Get dept_id from query parameters
+  
+      if (!dept_id) {
+        return res.status(400).json({ message: "Department ID is required" });
+      }
+  
+      const students = await fetchStudentsByDepartment(dept_id);
+      return res.status(200).json(students);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  
+
+
+
+
+module.exports = { uploadStudents,getStudents };

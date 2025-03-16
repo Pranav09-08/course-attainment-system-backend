@@ -22,4 +22,24 @@ const insertStudents = async (students) => {
   return result;
 };
 
-module.exports = { insertStudents };
+// Function to fetch students by department
+const fetchStudentsByDepartment = async (dept_id) => {
+    const query = `
+      SELECT 
+        s.roll_no, 
+        s.name, 
+        s.email, 
+        s.mobile_no, 
+        s.class, 
+        d.dept_name, 
+        s.academic_yr
+      FROM Student s
+      JOIN Department d ON s.dept_id = d.dept_id
+      WHERE s.dept_id = ?;
+    `;
+  
+    const [students] = await db.query(query, [dept_id]);
+    return students;
+  };
+
+module.exports = { insertStudents,fetchStudentsByDepartment };
