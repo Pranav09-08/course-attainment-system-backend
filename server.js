@@ -20,6 +20,7 @@ const courseReportRoutes = require('./routes/coordinator/courseReportRouter');
 const addmarks =require('./routes/faculty/marksRoute');
 const courseAllotmentRoutes = require("./routes/admin/courseAllotmentRoute");
 const getStudentRoute =require('./routes/faculty/getStudentRoute');
+const studentRoute = require('./routes/admin/studentRoute')
 
 // New contact route
 const contactRoute = require("./routes/contactRoute");
@@ -44,6 +45,7 @@ app.use("/admin", adminRoutes);
 app.use("/admin/course", adminCourseRoute);
 app.use("/admin/allotment", courseAllotmentRoutes);
 app.use("/admin/coordinator",adminCourseCoordinatorRoute);
+app.use("/admin/student",studentRoute);
 
 // New contact route
 app.use("/contact", contactRoute);
