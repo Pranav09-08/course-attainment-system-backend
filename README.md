@@ -29,7 +29,6 @@ This repository contains the backend for the Teacher Attainment System, handling
 - 📡 **REST API** - Standard API architecture
 
 ### Deployment
-- ☁️ **Docker** - Containerization for seamless deployment
 - 🚀 **Render** - Cloud hosting for backend
 
 ### Version Control
