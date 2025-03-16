@@ -97,5 +97,78 @@ async function getCourseCoordinatorsByDept(dept_id) {
   }
 }
 
+// 🟢 Function to update faculty_id for a course coordinator
+const updateCourseCoordinatorFaculty = async (courseId, academicYr, sem, newFacultyId) => {
+  try {
+      // Validate input
+      if (!courseId || !academicYr || !sem || !newFacultyId) {
+          throw new Error("courseId, academicYr, sem, and newFacultyId are required");
+      }
+
+      // Check if the new faculty exists
+      const [faculty] = await db.query(`SELECT * FROM Faculty WHERE faculty_id = ?`, [newFacultyId]);
+      if (faculty.length === 0) {
+          throw new Error("New faculty ID does not exist");
+      }
+
+      // Check if the course coordinator exists
+      const [existing] = await db.query(
+          `SELECT * FROM Course_Coordinator WHERE course_id = ? AND academic_yr = ? AND sem = ?`,
+          [courseId, academicYr, sem]
+      );
+      if (existing.length === 0) {
+          throw new Error("Course coordinator not found");
+      }
+
+      // Update faculty_id
+      const [result] = await db.query(
+          `UPDATE Course_Coordinator SET faculty_id = ? WHERE course_id = ? AND academic_yr = ? AND sem = ?`,
+          [newFacultyId, courseId, academicYr, sem]
+      );
+
+      if (result.affectedRows === 0) {
+          throw new Error("Failed to update faculty ID");
+      }
+
+      return { courseId, academicYr, sem, newFacultyId };
+  } catch (err) {
+      throw err;
+  }
+};
+
+// 🟢 Function to delete a course coordinator
+const deleteCourseCoordinator = async (courseId, academicYr, sem) => {
+  try {
+    // Validate input
+    if (!courseId || !academicYr || !sem) {
+      throw new Error("courseId, academicYr, and sem are required");
+    }
+
+    // Check if the course coordinator exists
+    const [existing] = await db.query(
+      `SELECT * FROM Course_Coordinator WHERE course_id = ? AND academic_yr = ? AND sem = ?`,
+      [courseId, academicYr, sem]
+    );
+
+    if (existing.length === 0) {
+      throw new Error("Course coordinator not found");
+    }
+
+    // Delete the course coordinator
+    const [result] = await db.query(
+      `DELETE FROM Course_Coordinator WHERE course_id = ? AND academic_yr = ? AND sem = ?`,
+      [courseId, academicYr, sem]
+    );
+
+    if (result.affectedRows === 0) {
+      throw new Error("Failed to delete course coordinator");
+    }
+
+    return { courseId, academicYr, sem };
+  } catch (err) {
+    throw err;
+  }
+};
+
 // ✅ Export functions separately
-module.exports = { allotCourseCoordinator, getCourseCoordinatorsByDept };
+module.exports = { allotCourseCoordinator, getCourseCoordinatorsByDept, updateCourseCoordinatorFaculty, deleteCourseCoordinator };
