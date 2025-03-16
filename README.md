@@ -8,7 +8,8 @@ This repository contains the backend for the Teacher Attainment System, handling
 - ✅ **RESTful APIs** for seamless frontend integration.
 - ✅ **JWT-based authentication** for secure access.
 - ✅ **ORM with Sequelize** for efficient database interactions.
-- ✅ **Dockerized deployment** for portability.
+- ✅ **Role-based authentication and login system** to manage different user permissions.
+- ✅ **Excel file insertion support** for bulk data entry.
 
 ## Tech Stack
 
@@ -21,12 +22,17 @@ This repository contains the backend for the Teacher Attainment System, handling
 
 ### Authentication & Security
 - 🔐 **JWT** - JSON Web Tokens for authentication
+- 👥 **Role-based Access Control** - User roles for different permissions
 
 ### ORM
 - 🏗️ **Sequelize** - Promise-based Node.js ORM for MySQL
 
 ### API Development
 - 📡 **REST API** - Standard API architecture
+
+### File Handling
+- 📂 **Multer** - Middleware for handling multipart/form-data
+- 📊 **xlsx** - Library for parsing and writing Excel files
 
 ### Deployment
 - 🚀 **Render** - Cloud hosting for backend
@@ -35,6 +41,11 @@ This repository contains the backend for the Teacher Attainment System, handling
 - 🐙 **Git** - Version control system
 - 🌿 **GitHub** - Repository hosting service
 
+## Setup Instructions
+1. Clone the repository: `git clone <backend-repo-url>`
+2. Install dependencies: `npm install`
+3. Configure `.env` file with database and JWT details.
+4. Start the server: `npm start`
 
 For detailed project overview, visit the [Frontend Repository](https://github.com/Pranav09-08/teacher-attainment-system-frontend).
 
