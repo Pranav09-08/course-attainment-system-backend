@@ -1,4 +1,4 @@
-const {uploadStudent,fetchStudentsByDepartment} = require("../../models/admin/studentModel");
+const {insertStudents,fetchStudentsByDepartment} = require("../../models/admin/studentModel");
 
 // Upload students via JSON (not file)
 const uploadStudents = async (req, res) => {
@@ -22,7 +22,7 @@ const uploadStudents = async (req, res) => {
     }
 
     // Insert students into the database
-    await uploadStudent.insertStudents(students);
+    await insertStudents(students);
 
     res.status(201).json({ message: "✅ Students added successfully!" });
   } catch (err) {
