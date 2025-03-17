@@ -42,4 +42,29 @@ const fetchStudentsByDepartment = async (dept_id) => {
     return students;
   };
 
-module.exports = { insertStudents,fetchStudentsByDepartment };
+
+// Function to update a student (name, email, and mobile_no)
+const updateStudent = async (roll_no, updatedData) => {
+  const query = `
+    UPDATE Student
+    SET 
+      name = ?,
+      email = ?,
+      mobile_no = ?
+    WHERE roll_no = ?;
+  `;
+
+  const values = [
+    updatedData.name,
+    updatedData.email,
+    updatedData.mobile_no,
+    roll_no, // Old roll_no (to identify the student)
+  ];
+
+  const [result] = await db.query(query, values);
+  return result;
+};
+
+
+module.exports = { insertStudents, fetchStudentsByDepartment, updateStudent };
+

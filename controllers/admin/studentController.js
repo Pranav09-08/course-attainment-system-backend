@@ -1,4 +1,4 @@
-const {uploadStudent,fetchStudentsByDepartment} = require("../../models/admin/studentModel");
+const {uploadStudent,fetchStudentsByDepartment,updateStudent} = require("../../models/admin/studentModel");
 
 // Upload students via JSON (not file)
 const uploadStudents = async (req, res) => {
@@ -60,8 +60,56 @@ const getStudents = async (req, res) => {
     }
   };
   
-
-
-
-
-module.exports = { uploadStudents,getStudents };
+  // Update a student (only name, email, and mobile_no)
+  const updateStudentController = async (req, res) => {
+    const { roll_no } = req.params; // Get old roll_no from URL params
+    const { name, email, mobile_no } = req.body; // Get updated data from request body
+  
+    // Validate roll_no
+    if (!Number.isInteger(Number(roll_no))) {
+      return res.status(400).json({ error: "Roll number must be an integer." });
+    }
+  
+    // Validate name (only alphabets and spaces)
+    if (name && !/^[A-Za-z\s]+$/.test(name)) {
+      return res.status(400).json({ error: "Name must contain only alphabets and spaces." });
+    }
+  
+    // Validate email (valid email format)
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Invalid email format." });
+    }
+  
+    // Validate mobile_no (exactly 10 digits)
+    if (mobile_no && !/^\d{10}$/.test(mobile_no)) {
+      return res.status(400).json({ error: "Mobile number must be exactly 10 digits." });
+    }
+  
+    try {
+      // Construct the updatedData object
+      const updatedData = {
+        name,
+        email,
+        mobile_no,
+      };
+  
+      // Update the student in the database
+      const result = await updateStudent(roll_no, updatedData);
+  
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Student not found." });
+      }
+  
+      res.status(200).json({ message: "✅ Student updated successfully!" });
+    } catch (err) {
+      console.error("❌ Error updating student:", err);
+  
+      if (err.code === "ER_DUP_ENTRY") {
+        return res.status(400).json({ error: "Duplicate entry: A student with the same email or mobile number already exists." });
+      }
+  
+      res.status(500).json({ error: "Internal Server Error. Please try again later." });
+    }
+  };
+  
+module.exports = { uploadStudents,getStudents, updateStudentController};
