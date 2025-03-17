@@ -1,5 +1,4 @@
-const {uploadStudent,fetchStudentsByDepartment,updateStudent} = require("../../models/admin/studentModel");
-const {insertStudents,fetchStudentsByDepartment} = require("../../models/admin/studentModel");
+const {uploadStudent,fetchStudentsByDepartment,updateStudent,deleteStudent} = require("../../models/admin/studentModel");
 
 // Upload students via JSON (not file)
 const uploadStudents = async (req, res) => {
@@ -112,5 +111,30 @@ const getStudents = async (req, res) => {
       res.status(500).json({ error: "Internal Server Error. Please try again later." });
     }
   };
+
+  // Delete a student by roll_no
+const deleteStudentController = async (req, res) => {
+  const { roll_no } = req.params; // Get roll_no from URL params
+
+  // Validate roll_no
+  if (!Number.isInteger(Number(roll_no))) {
+    return res.status(400).json({ error: "Roll number must be an integer." });
+  }
+
+  try {
+    // Delete the student from the database
+    const result = await deleteStudent(roll_no);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Student not found." });
+    }
+
+    res.status(200).json({ message: "✅ Student deleted successfully!" });
+  } catch (err) {
+    console.error("❌ Error deleting student:", err);
+    res.status(500).json({ error: "Internal Server Error. Please try again later." });
+  }
+};
+
   
-module.exports = { uploadStudents,getStudents, updateStudentController};
+module.exports = { uploadStudents,getStudents, updateStudentController, deleteStudentController};

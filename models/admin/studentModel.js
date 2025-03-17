@@ -65,6 +65,17 @@ const updateStudent = async (roll_no, updatedData) => {
   return result;
 };
 
+// Function to delete a student by roll_no
+const deleteStudent = async (roll_no) => {
+  const query = `
+    DELETE FROM Student
+    WHERE roll_no = ?;
+  `;
 
-module.exports = { insertStudents, fetchStudentsByDepartment, updateStudent };
+  const [result] = await db.query(query, [roll_no]);
+  return result;
+};
+
+
+module.exports = { insertStudents, fetchStudentsByDepartment, updateStudent, deleteStudent };
 
