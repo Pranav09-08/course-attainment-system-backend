@@ -32,16 +32,16 @@ const updateFaculty = async (req, res) => {
     return res.status(403).json({ msg: "Access denied. Only admin can access this." });
   }
     const { faculty_id } = req.params;
-    const { name, email, mobile_no, dept_id, password } = req.body;
+    const { name, email, mobile_no, dept_id } = req.body;
   
     console.log(`📤 Request to update faculty: ${faculty_id}`);
   
-    if (!name || !email || !mobile_no || !dept_id || !password) {
+    if (!name || !email || !mobile_no || !dept_id) {
       return res.status(400).json({ error: 'All fields are required' });
     }
   
     try {
-      const result = await Admin.updateFaculty(faculty_id, name, email, mobile_no, dept_id, password);
+      const result = await Admin.updateFaculty(faculty_id, name, email, mobile_no, dept_id);
   
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: 'Faculty not found' });

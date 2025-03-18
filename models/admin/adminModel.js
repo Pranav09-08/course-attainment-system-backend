@@ -11,13 +11,13 @@ const createFaculty = async (faculty_id, name, email, mobile_no, dept_id, passwo
 };
 
 // Function to update faculty details
-const updateFaculty = async (faculty_id, name, email, mobile_no, dept_id, password) => {
+const updateFaculty = async (faculty_id, name, email, mobile_no, dept_id) => {
   const query = `
     UPDATE Faculty 
-    SET name = ?, email = ?, mobile_no = ?, dept_id = ?, password = ?
+    SET name = ?, email = ?, mobile_no = ?, dept_id = ?
     WHERE faculty_id = ?
   `;
-  const [result] = await db.query(query, [name, email, mobile_no, dept_id, password, faculty_id]);
+  const [result] = await db.query(query, [name, email, mobile_no, dept_id, faculty_id]);
   return result;
 };
 
