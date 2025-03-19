@@ -3,7 +3,7 @@ const fs = require('fs');
 const courseReportModel = require('../../models/coordinator/courseReportModel');
 
 // Handle GET request to generate the report
-const generateReport = async (req, res) => {
+const getmarksTarget = async (req, res) => {
   const { courseId, deptId, academicYear } = req.query;
 
   if (!courseId || !deptId || !academicYear) {
@@ -25,13 +25,6 @@ const generateReport = async (req, res) => {
       return res.status(404).send('No marks data found');
     }
     console.log('Marks Data:', marksData);
-
-    // Fetch Level Target data
-    const levelTargetData = await courseReportModel.getLevelTarget(courseId, deptId, academicYear);
-    if (levelTargetData.length === 0) {
-      return res.status(404).send('No level target data found');
-    }
-    console.log('Level Target Data:', levelTargetData);
 
     // Prepare response with only target and marks data
     const responseData = {
@@ -246,6 +239,87 @@ const downladReport = async (req, res) => {
   }
 };
 
+const generateReport = async (req, res) => {
+  const { courseId, deptId, academicYear } = req.query;
+  
+  if (!courseId || !deptId || !academicYear) {
+    return res.status(400).send('Missing required parameters');
+  }
+
+  let error = null;
+  let responseData = { target: null, marks: [], levelTarget: [] };
+
+  try {
+    // Fetch course target data
+    const targetData = await courseReportModel.getCourseTarget(courseId, deptId, academicYear);
+    if (targetData.length === 0) {
+      error = 'Some data could not be retrieved';
+    } else {
+      responseData.target = {
+        target1: targetData[0].target1,
+        sppu1: targetData[0].sppu1,
+        target2: targetData[0].target2,
+        sppu2: targetData[0].sppu2,
+        target3: targetData[0].target3,
+        sppu3: targetData[0].sppu3,
+      };
+    }
+  } catch (err) {
+    console.error('Error fetching target data:', err);
+    error = 'Some data could not be retrieved';
+  }
+
+  try {
+    // Fetch marks data
+    const marksData = await courseReportModel.getMarksData(courseId, deptId, academicYear);
+    if (marksData.length === 0) {
+      error = 'Some data could not be retrieved';
+    } else {
+      responseData.marks = marksData.map((mark) => ({
+        rollNo: mark.roll_no,
+        studentName: mark.student_name,
+        co1: mark.u1_co1,
+        co2: mark.u1_co2,
+        co3: mark.u2_co3,
+        co4: mark.u2_co4,
+        co5: mark.u3_co5,
+        co6: mark.u3_co6,
+        ico1: mark.i_co1,
+        ico2: mark.i_co2,
+        endSem: mark.end_sem,
+        finalSem: mark.final_sem,
+      }));
+    }
+  } catch (err) {
+    console.error('Error fetching marks data:', err);
+    error = 'Some data could not be retrieved';
+  }
+
+  try {
+    // Fetch Level Target data
+    const levelTargetData = await courseReportModel.getLevelTarget(courseId, deptId, academicYear);
+    if (levelTargetData.length === 0) {
+      error = 'Some data could not be retrieved';
+    } else {
+      responseData.levelTarget = levelTargetData;
+    }
+  } catch (err) {
+    console.error('Error fetching level target data:', err);
+    error = 'Some data could not be retrieved';
+  }
+
+  // Send the response with available data and a single error message if needed
+  res.status(200).json({
+    success: true,
+    message: 'Report data processed',
+    data: responseData,
+    error,
+  });
+};
+
+module.exports = generateReport;
+
+
 module.exports = {
-  generateReport,downladReport
+  generateReport,downladReport,getmarksTarget
 };
