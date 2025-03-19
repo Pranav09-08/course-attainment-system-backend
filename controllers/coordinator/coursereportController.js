@@ -97,9 +97,9 @@ const downladReport = async (req, res) => {
     // Prepare target data for the Excel sheet
     const targetSheetData = [
       ['Target', 'Unit Test', 'SPPU'],
-      ['Level 3', target.target1, target.sppu1],
+      ['Level 3', target.target3, target.sppu3],
       ['Level 2', target.target2, target.sppu2],
-      ['Level 1', target.target3, target.sppu3],
+      ['Level 1', target.target1, target.sppu1],
     ];
     console.log('Target Sheet Data:', targetSheetData);
 
@@ -193,32 +193,6 @@ const downladReport = async (req, res) => {
     const filePath = `./course_report_${Date.now()}.xlsx`;
     xlsx.writeFile(wb, filePath);
     console.log('File created at:', filePath);
-
-    // Prepare response with only target and marks data
-    const responseData = {
-      target: {
-        target1: target.target1,
-        sppu1: target.sppu1,
-        target2: target.target2,
-        sppu2: target.sppu2,
-        target3: target.target3,
-        sppu3: target.sppu3,
-      },
-      marks: marksData.map((mark) => ({
-        rollNo: mark.roll_no,
-        studentName: mark.student_name,
-        co1: mark.u1_co1,
-        co2: mark.u1_co2,
-        co3: mark.u2_co3,
-        co4: mark.u2_co4,
-        co5: mark.u3_co5,
-        co6: mark.u3_co6,
-        ico1: mark.i_co1,
-        ico2: mark.i_co2,
-        endSem: mark.end_sem,
-        finalSem: mark.final_sem,
-      })),
-    };
 
     // Check if the file exists before attempting to send it
     if (fs.existsSync(filePath)) {
