@@ -81,4 +81,37 @@ const getCoordinatorCourses = async (req, res) => {
     }
 };
 
-module.exports = { getAttainmentData, getCoordinatorCourses };
+const getFacultyInfo = async (req, res) => {
+    try {
+
+        // Extract query parameters
+        const { courseId, deptId, academicYr } = req.query;
+
+        // Validate that all parameters are provided
+        if (!courseId || !deptId || !academicYr) {
+            return res.status(400).json({ error: "Course ID, Department ID, and Academic Year are required" });
+        }
+
+        // Fetch faculty information using the model
+        const facultyInfo = await AttainmentModel.getFacultyInfoByCourse(courseId, deptId, academicYr);
+
+        // Log the result for debugging purposes
+        console.log("Faculty Info:", facultyInfo);
+
+        // Check if no data is found
+        if (!facultyInfo.length) {
+            return res.status(404).json({ message: "No faculty data found for the given parameters" });
+        }
+
+        // Send the fetched faculty data as a response
+        res.json(facultyInfo);
+    } catch (error) {
+        // Log the error for debugging
+        console.error("Error fetching faculty info:", error);
+
+        // Send an internal server error response
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+module.exports = { getAttainmentData, getCoordinatorCourses,getFacultyInfo };

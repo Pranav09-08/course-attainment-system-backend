@@ -70,6 +70,35 @@ WHERE ca.course_id = ? AND ca.academic_yr = ?;
         const result = await db.execute(query, [course_id, academic_yr, dept_id]);
         console.log('Course Target Result:', result);  // Log the result to check
         return result;
+    },
+
+    // Get faculty information by course_id, dept_id, and academic_yr
+    getFacultyInfoByCourse: async (course_id, dept_id, academic_yr) => {
+        const query = `
+            SELECT 
+                f.faculty_id, 
+                f.name, 
+                f.email, 
+                f.mobile_no, 
+                f.dept_id, 
+                f.password, 
+                ca.course_id, 
+                ca.class, 
+                ca.sem, 
+                ca.academic_yr
+            FROM Faculty AS f
+            JOIN Course_Allotment AS ca ON f.faculty_id = ca.faculty_id
+            WHERE ca.course_id = ? AND ca.dept_id = ? AND ca.academic_yr = ?;
+        `;
+        
+        try {
+            const [result] = await db.execute(query, [course_id, dept_id, academic_yr]);
+            console.log('Faculty Info Result:', result);  // Log the result to check
+            return result;  // Return the result
+        } catch (error) {
+            console.error('Error fetching faculty info:', error);
+            throw error;  // Throw the error if any
+        }
     }
 };
 

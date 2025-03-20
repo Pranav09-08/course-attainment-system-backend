@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getAttainmentData, getCoordinatorCourses } = require("../../controllers/coordinator/attainmentController");
+const { getAttainmentData, getCoordinatorCourses,getFacultyInfo} = require("../../controllers/coordinator/attainmentController");
 const authenticateToken = require("../../middleware/authLoginMiddleware");
 const levelTargetController = require('../../controllers/coordinator/calculateAttainment');
 
@@ -9,6 +9,8 @@ router.get("/attainment-data", authenticateToken,getAttainmentData);
 
 // Route to get courses assigned to a coordinator
 router.get("/coordinator-courses", authenticateToken,getCoordinatorCourses);
+
+router.get("/get-faculty",getFacultyInfo);
 
 
 // Route for updating level targets
