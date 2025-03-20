@@ -47,23 +47,24 @@ const allotCourse = async (courseData) => {
 };
 
 //function to get all alloted courses
-const getAllottedCourses = async () => {
+const getAllottedCourses = async (dept_id) => {
     try {
         const query = `
-            SELECT 
-                ca.course_id, 
-                c.course_name, 
-                ca.faculty_id, 
-                f.name AS faculty_name, 
-                ca.class, 
-                ca.sem, 
-                ca.academic_yr
+           SELECT 
+            ca.course_id, 
+            c.course_name, 
+            ca.faculty_id, 
+            f.name AS faculty_name, 
+            ca.class, 
+            ca.sem, 
+            ca.academic_yr
             FROM Course_Allotment ca
             JOIN Course c ON ca.course_id = c.course_id
-            JOIN Faculty f ON ca.faculty_id = f.faculty_id;
+            JOIN Faculty f ON ca.faculty_id = f.faculty_id
+            WHERE ca.dept_id = ?;  -- Use ca.dept_id instead of c.dept_id
         `;
 
-        const [rows] = await db.query(query);
+        const [rows] = await db.query(query, [dept_id]);
         return rows;
     } catch (error) {
         throw error;

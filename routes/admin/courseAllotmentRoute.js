@@ -7,7 +7,7 @@ const allotcoursecontroller = require("../../controllers/admin/courseAllotmentCo
 
 // Route to allot a new course
 router.post('/add-course-allotment',authenticateToken, allotcoursecontroller.allotCourse);  
-router.get("/get-allotted-courses", authenticateToken, allotcoursecontroller.getAllottedCourses);
+router.get("/get-allotted-courses/:dept_id", authenticateToken, allotcoursecontroller.getAllottedCourses);
 router.put("/update-course-allotment/:courseId/:academicYr/:sem",authenticateToken, allotcoursecontroller.updateCourseAllotmentFaculty);
 router.delete("/delete-course-allotment/:courseId/:academicYr/:sem", authenticateToken, allotcoursecontroller.deleteCourseAllotment);
 

@@ -34,10 +34,16 @@ const allotCourse = async (req, res) => {
 //function get all alloted courses
 const getAllottedCourses = async (req, res) => {
     try {
-        const courses = await CourseAllotment.getAllottedCourses();
+        const { dept_id } = req.params; // Extract dept_id from request params
+
+        if (!dept_id || isNaN(dept_id)) {
+            return res.status(400).json({ error: "Invalid or missing department ID" });
+        }
+
+        const courses = await CourseAllotment.getAllottedCourses(dept_id); // Pass dept_id to the method
 
         if (courses.length === 0) {
-            return res.status(404).json({ message: "No course allotments found" });
+            return res.status(404).json({ message: "No course allotments found for this department" });
         }
 
         return res.status(200).json({ data: courses });
