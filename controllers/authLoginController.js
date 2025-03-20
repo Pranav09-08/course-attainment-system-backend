@@ -1,7 +1,3 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/loginModel");
-require("dotenv").config();
-
 // Generate Access Token with user role
 const generateAccessToken = (userId, role) => {
   return jwt.sign({ id: userId, role: role }, process.env.JWT_SECRET, { expiresIn: "15d" });
@@ -16,7 +12,7 @@ const login = async (req, res) => {
     let role = "";
 
     // Case 1: Check if the user exists in Faculty Table (role = faculty)
-    user = await User.findqUserByEmailFaculty(email);
+    user = await User.findUserByEmailFaculty(email);
     if (user) {
       role = "faculty";
 
