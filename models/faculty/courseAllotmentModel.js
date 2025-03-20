@@ -46,5 +46,4 @@ const getFacultyWithNullAttainment = async (facultyId) => {
 };
 
 
-
 module.exports = { getFacultyById, getFacultyWithNullAttainment };

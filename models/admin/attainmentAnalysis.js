@@ -1,16 +1,16 @@
-// models/CourseAttainment.js
-const db = require('../../db/db'); // Assuming you have a database configuration
+const db = require('../../db/db'); // Adjust path if needed
 
 class CourseAttainment {
     static async getAttainmentByCourse(courseId) {
         const query = `
-            SELECT * FROM course_attainment
-            WHERE course_id = $1
+            SELECT course_id, dept_id, academic_yr, ut_attainment, 
+                   insem_attainment, endsem_attainment, final_attainment, total
+            FROM Calculate_Attainment
+            WHERE course_id = ?
             ORDER BY academic_yr DESC
             LIMIT 4;
         `;
-        const values = [courseId];
-        const { rows } = await db.query(query, values);
+        const [rows] = await db.query(query, [courseId]);
         return rows;
     }
 }
