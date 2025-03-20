@@ -16,7 +16,7 @@ const login = async (req, res) => {
     let role = "";
 
     // Case 1: Check if the user exists in Faculty Table (role = faculty)
-    user = await User.findUserByEmailFaculty(email);
+    user = await User.findqUserByEmailFaculty(email);
     if (user) {
       role = "faculty";
 

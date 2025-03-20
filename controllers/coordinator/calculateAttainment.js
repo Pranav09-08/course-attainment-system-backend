@@ -4,7 +4,7 @@ const Controllers = {
     // Update level targets for all course outcomes
     updateLevelTargets: async (req, res) => {
         try {
-        
+
             // Extract parameters from the request body
             const { course_id, academic_yr, dept_id, modified_by } = req.body;
 
@@ -168,6 +168,99 @@ async function updateLevelTarget(course_id, academic_yr, course_outcome, dept_id
     }
 }
 
+async function updateCalculateAttainment(course_id, academic_yr, dept_id) {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // Fetch attainment values from Level_Target
+        const [attainmentRows] = await connection.query(
+            `SELECT course_outcome, ut_as 
+             FROM Level_Target 
+             WHERE course_id = ? AND academic_yr = ? AND dept_id = ?`,
+            [course_id, academic_yr, dept_id]
+        );
+
+        if (attainmentRows.length === 0) {
+            throw new Error("No attainment data found for the given course.");
+        }
+
+        // Initialize arrays to store UT and InSem attainments
+        let ut_attainments = [];
+        let insem_attainments = [];
+        let endsem_attainment = 0;
+        let final_attainment = 0;
+
+        // Categorize attainments
+        attainmentRows.forEach(row => {
+            if (row.course_outcome.startsWith('u')) {
+                ut_attainments.push(parseFloat(row.ut_as)); // Convert to number
+            } else if (row.course_outcome.startsWith('i')) {
+                insem_attainments.push(parseFloat(row.ut_as)); // Convert to number
+            } else if (row.course_outcome === 'end_sem') {
+                endsem_attainment = parseFloat(row.ut_as); // Convert to number
+            } else if (row.course_outcome === 'final_sem') {
+                final_attainment = parseFloat(row.ut_as); // Convert to number
+            }
+        });
+
+        // Debug: Log the arrays to see their contents
+        console.log("UT Attainments:", ut_attainments);
+        console.log("InSem Attainments:", insem_attainments);
+
+        // Calculate UT attainment as the average of all UT-related attainments
+        const ut_attainment = ut_attainments.length > 0
+            ? ut_attainments.reduce((sum, val) => sum + val, 0) / ut_attainments.length
+            : 0; // Default to 0 if no UT attainments
+
+        // Calculate InSem attainment as the average of all InSem-related attainments
+        const insem_attainment = insem_attainments.length > 0
+            ? insem_attainments.reduce((sum, val) => sum + val, 0) / insem_attainments.length
+            : 0; // Default to 0 if no InSem attainments
+
+        // Debug: Log the calculated averages
+        console.log(`Calculated UT Attainment: ${ut_attainment}`);
+        console.log(`Calculated InSem Attainment: ${insem_attainment}`);
+
+        // Calculate total attainment
+        const total = ut_attainment * 0.3 + final_attainment * 0.7;
+
+        console.log(`EndSem: ${endsem_attainment}, Final: ${final_attainment}, Total: ${total}`);
+
+        // Replace NaN with NULL or 0
+        const sanitizeValue = (value) => isNaN(value) ? null : value;
+
+        // Insert or update the Calculate_Attainment table
+        await connection.query(`
+            INSERT INTO Calculate_Attainment (course_id, dept_id, academic_yr, ut_attainment, insem_attainment, endsem_attainment, final_attainment, total)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE 
+                ut_attainment = VALUES(ut_attainment), 
+                insem_attainment = VALUES(insem_attainment), 
+                endsem_attainment = VALUES(endsem_attainment), 
+                final_attainment = VALUES(final_attainment), 
+                total = VALUES(total)
+        `, [
+            course_id, dept_id, academic_yr,
+            sanitizeValue(ut_attainment),
+            sanitizeValue(insem_attainment),
+            sanitizeValue(endsem_attainment),
+            sanitizeValue(final_attainment),
+            sanitizeValue(total)
+        ]);
+
+        await connection.commit();
+        console.log("Calculate_Attainment table updated successfully.");
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error updating Calculate_Attainment:", error);
+    } finally {
+        connection.release();
+    }
+}
+
+
+
 async function updateAllCourseOutcomes(course_id, academic_yr, dept_id, modified_by) {
     const connection = await db.getConnection();
     try {
@@ -180,12 +273,15 @@ async function updateAllCourseOutcomes(course_id, academic_yr, dept_id, modified
             AND COLUMN_NAME NOT IN ('roll_no', 'course_id', 'sem', 'dept_id','academic_yr')
         `);
 
-        // Iterate over each column and call updateLevelTarget
-        for (const column of columns) {
+        // Use Promise.all to wait for all updateLevelTarget calls to complete
+        await Promise.all(columns.map(async (column) => {
             const course_outcome = column.COLUMN_NAME;
             console.log(`Processing course outcome: ${course_outcome}`);
             await updateLevelTarget(course_id, academic_yr, course_outcome, dept_id, modified_by);
-        }
+        }));
+
+        // Now that all course outcomes have been updated, call updateCalculateAttainment
+        await updateCalculateAttainment(course_id, academic_yr, dept_id);
     } catch (error) {
         console.error("Error updating all course outcomes:", error);
     } finally {
