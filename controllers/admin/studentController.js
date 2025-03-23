@@ -1,4 +1,4 @@
-const {uploadStudent,fetchStudentsByDepartment,updateStudent,deleteStudent} = require("../../models/admin/studentModel");
+const {insertStudents,fetchStudentsByDepartment,updateStudent,deleteStudent} = require("../../models/admin/studentModel");
 
 // Upload students via JSON (not file)
 const uploadStudents = async (req, res) => {
