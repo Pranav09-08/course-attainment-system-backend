@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/loginModel");
 require("dotenv").config();
 
@@ -10,39 +11,42 @@ const generateAccessToken = (userId, role) => {
 // User Login
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body; // Accepts email
+    const { email, password } = req.body;
 
     let user = null;
     let role = "";
 
-    // Case 1: Check if the user exists in Faculty Table (role = faculty)
+    // 1️⃣ Check in Faculty
     user = await User.findUserByEmailFaculty(email);
     if (user) {
       role = "faculty";
 
-      // Case 2: Check if the user is also a Coordinator (role = coordinator)
+      // 2️⃣ Check if faculty is also coordinator
       const coordinator = await User.findUserByFacultyId(user.faculty_id);
       if (coordinator) {
-        role = "coordinator"; // Upgrade role if user is also a coordinator
+        role = "coordinator";
       }
 
     } else {
-      // Case 3: Check if the user exists in Admin Table (role = admin)
-      user = await User.findUserByDeptId(email); // Admin login is now identified by email
-      if (user && password === user.password) {
+      // 3️⃣ Check in Department (admin)
+      user = await User.findUserByDeptId(email);
+      if (user) {
         role = "admin";
       }
     }
 
-    // If no user found or password mismatch
-    if (!user || password !== user.password) {
+    if (!user) {
       return res.status(400).json({ msg: "Invalid email or password" });
     }
 
-    // Generate access token with user ID and role
-    const accessToken = generateAccessToken(user.faculty_id || user.dept_id, role);
+    // 🔐 Compare with hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Invalid email or password" });
+    }
 
-    // Return user details with access token
+    // ✅ Generate token and return user
+    const accessToken = generateAccessToken(user.faculty_id || user.dept_id, role);
     res.json({ accessToken, user: { id: user.faculty_id || user.dept_id, role } });
 
   } catch (err) {

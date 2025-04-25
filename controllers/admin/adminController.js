@@ -1,10 +1,12 @@
 const Admin = require('../../models/admin/adminModel');
+const bcrypt = require("bcryptjs"); // Make sure to import this
 
 // Add a new faculty member
 const addFaculty = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ msg: "Access denied. Only admin can access this." });
   }
+
   const { faculty_id, name, email, mobile_no, dept_id, password } = req.body;
 
   console.log(`📥 Request to add new faculty: ${faculty_id}, ${name}, ${email}, Dept: ${dept_id}`);
@@ -14,8 +16,11 @@ const addFaculty = async (req, res) => {
   }
 
   try {
-    // Insert faculty into the database
-    const result = await Admin.createFaculty(faculty_id, name, email, mobile_no, dept_id, password);
+    // 🔐 Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert faculty with hashed password
+    const result = await Admin.createFaculty(faculty_id, name, email, mobile_no, dept_id, hashedPassword);
 
     console.log('✅ Faculty added successfully:', result);
     res.status(201).json({ message: 'Faculty added successfully', faculty_id });
