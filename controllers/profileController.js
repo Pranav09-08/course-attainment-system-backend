@@ -1,103 +1,61 @@
-const db = require('../db/db');
 const Faculty = require('../models/profileModel');
 
-// Handle GET request for faculty by ID
 const getFaculty = async (req, res) => {
-  const facultyId = req.params.id;
-  console.log(`📥 Request received for Faculty ID: ${facultyId}`);
-
   try {
-
-    // Fetch faculty using the model
-    const results = await Faculty.getFacultyById(facultyId);
-
-    if (results.length === 0) {
-      console.log('❗ Faculty not found');
+    const faculty = await Faculty.getFacultyById(req.params.id);
+    if (!faculty) {
       return res.status(404).json({ message: 'Faculty not found' });
     }
-
-    console.log('✅ Faculty found:', results[0]);
-    res.json(results[0]);
-
+    res.json(faculty);
   } catch (err) {
-    console.error('❌ Error fetching faculty:', err);
+    console.error('Error fetching faculty:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-
-// Handle GET request for admin by ID
 const getAdmin = async (req, res) => {
-  const adminId = req.params.id;
-  console.log(`📥 Request received for Admin ID: ${adminId}`);
-
   try {
-    
-    // Fetch faculty using the model
-    const results = await Faculty.getAdminById(adminId);
-
-    if (results.length === 0) {
-      console.log('❗ Faculty not found');
-      return res.status(404).json({ message: 'Faculty not found' });
+    const admin = await Faculty.getAdminById(req.params.id);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
     }
-
-    console.log('✅ Faculty found:', results[0]);
-    res.json(results[0]);
-
+    res.json(admin);
   } catch (err) {
-    console.error('❌ Error fetching faculty:', err);
+    console.error('Error fetching admin:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// Handle GET request for Coordinator by ID
 const getCoordinator = async (req, res) => {
-  const facultyId = req.params.id;
-  console.log(`📥 Request received for Faculty ID: ${facultyId}`);
-
   try {
-
-    // Fetch faculty using the model
-    const results = await Faculty.getCoordinatorById(facultyId);
-
-    if (results.length === 0) {
-      console.log('❗ Faculty not found');
-      return res.status(404).json({ message: 'Faculty not found' });
+    const coordinator = await Faculty.getCoordinatorById(req.params.id);
+    if (!coordinator) {
+      return res.status(404).json({ message: 'Coordinator not found' });
     }
-
-    console.log('✅ Faculty found:', results);
-    res.json(results);
-
+    res.json(coordinator);
   } catch (err) {
-    console.error('❌ Error fetching faculty:', err);
+    console.error('Error fetching coordinator:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// Handle GET request for all faculty by department ID
+// Keep the getFacultyByDepartment function
 const getFacultyByDepartment = async (req, res) => {
-  const deptId = req.params.deptId; // Extract dept_id from request params
-  console.log(`📥 Request received for Faculty List of Dept ID: ${deptId}`);
-
   try {
-    // Fetch faculty using the model
-    const results = await Faculty.getFacultyByDept(deptId);
-
-    if (results.length === 0) {
-      console.log('❗ No faculty found for this department');
+    const facultyList = await Faculty.getFacultyByDept(req.params.deptId);
+    if (facultyList.length === 0) {
       return res.status(404).json({ message: 'No faculty found for this department' });
     }
-
-    console.log('✅ Faculty list retrieved:', results);  // Check if 'password' is included in the results
-    res.json(results);
-
+    res.json(facultyList);
   } catch (err) {
-    console.error('❌ Error fetching faculty:', err);
+    console.error('Error fetching faculty by department:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-
-
-
-module.exports = { getFaculty,getAdmin,getCoordinator,getFacultyByDepartment};
+module.exports = {
+  getFaculty,
+  getAdmin,
+  getCoordinator,
+  getFacultyByDepartment  // Make sure this is exported
+};

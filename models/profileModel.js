@@ -1,45 +1,50 @@
 const db = require('../db/db');
 
-// Function to fetch faculty by ID
 const getFacultyById = async (facultyId) => {
-  const query = 'SELECT faculty_id, name, email, mobile_no, dept_id FROM Faculty WHERE faculty_id = ?';
+  const query = `
+    SELECT f.*, up.profile_image_path 
+    FROM Faculty f
+    LEFT JOIN User_Profile up ON f.faculty_id = up.user_id AND up.user_role = 'faculty'
+    WHERE f.faculty_id = ?`;
   const [results] = await db.query(query, [facultyId]);
-  return results;
+  return results[0] || null;
 };
 
 const getAdminById = async (adminId) => {
-  const query = 'SELECT dept_id, dept_name, email FROM Department WHERE dept_id = ?';
+  const query = `
+    SELECT d.*, up.profile_image_path 
+    FROM Department d
+    LEFT JOIN User_Profile up ON d.dept_id = up.user_id AND up.user_role = 'admin'
+    WHERE d.dept_id = ?`;
   const [results] = await db.query(query, [adminId]);
-  return results;
+  return results[0] || null;
 };
 
 const getCoordinatorById = async (facultyId) => {
-  console.log("📥 Request received for Faculty ID:", facultyId);  // Debug log
-
-  const [rows] = await db.query(`
-    SELECT 
-      f.name AS name, 
-      f.email AS email,
-      f.dept_id AS dept_id,
-      f.faculty_id AS faculty_id
-    FROM 
-      Course_Coordinator cc
-    JOIN 
-      Faculty f ON cc.faculty_id = f.faculty_id
-    WHERE 
-      cc.faculty_id = ?
-  `, [facultyId]);
-
-  console.log("✅ Query Result:", rows);  // Debug query result
-
-  return rows.length > 0 ? rows[0] : null;
+  const query = `
+    SELECT f.*, up.profile_image_path
+    FROM Course_Coordinator cc
+    JOIN Faculty f ON cc.faculty_id = f.faculty_id
+    LEFT JOIN User_Profile up ON f.faculty_id = up.user_id AND up.user_role = 'faculty'
+    WHERE cc.faculty_id = ?`;
+  const [results] = await db.query(query, [facultyId]);
+  return results[0] || null;
 };
 
-// Function to fetch all faculty by department ID
+// Keep the getFacultyByDept function
 const getFacultyByDept = async (deptId) => {
-  const query = 'SELECT faculty_id, name, email, mobile_no, password FROM Faculty WHERE dept_id = ?';
-  const [results] = await db.query(query, [deptId]);  // Ensure the query is correct and db connection works
+  const query = `
+    SELECT f.*, up.profile_image_path
+    FROM Faculty f
+    LEFT JOIN User_Profile up ON f.faculty_id = up.user_id AND up.user_role = 'faculty'
+    WHERE f.dept_id = ?`;
+  const [results] = await db.query(query, [deptId]);
   return results;
 };
 
-module.exports = { getFacultyById,getAdminById,getCoordinatorById,getFacultyByDept };
+module.exports = {
+  getFacultyById,
+  getAdminById,
+  getCoordinatorById,
+  getFacultyByDept  // Make sure this is exported
+};

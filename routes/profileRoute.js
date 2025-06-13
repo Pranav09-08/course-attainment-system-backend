@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const facultyController = require('../controllers/profileController');
+const profileController = require('../controllers/profileController');
 
-// Route to get faculty by ID
-router.get('/faculty/:id', facultyController.getFaculty);
-router.get('/admin/:id',facultyController.getAdmin);
-router.get('/coordinator/:id',facultyController.getCoordinator);
+// Profile data routes
+router.get('/faculty/:id', profileController.getFaculty);
+router.get('/admin/:id', profileController.getAdmin);
+router.get('/coordinator/:id', profileController.getCoordinator);
 
-// Route to get all faculty by department ID
-router.get('/faculty/department/:deptId', facultyController.getFacultyByDepartment);
+// Keep the faculty by department route
+router.get('/faculty/department/:deptId', profileController.getFacultyByDepartment);
 
 module.exports = router;

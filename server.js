@@ -2,12 +2,13 @@ require('dotenv').config(); // Load environment variables first
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
+const path = require('path');
 // Existing routes
 const courseRoute = require('./routes/faculty/coursesRoute');
 const facultRoute2 = require('./routes/faculty/courseAllotmentRoute');
 const authLoginRoute = require("./routes/authLoginRoute");
 const facultyRoute = require('./routes/profileRoute');
+const updateProRoute = require('./routes/updateProfileRoute');
 const dashboardRoutes = require("./routes/dashboardAuth");
 const adminRoutes = require('./routes/admin/adminRoute');
 const attainmentRoutes = require('./routes/coordinator/attainmentRoutes');
@@ -51,6 +52,9 @@ app.use("/admin/allotment", courseAllotmentRoutes);
 app.use("/admin/coordinator",adminCourseCoordinatorRoute);
 app.use("/admin/student",studentRoute);
 app.use('/admin/course-attainment-analysis',courseAttainmentRoutes);
+//app.use('/update',updateProRoute);
+app.use('/api/profile', updateProRoute);
+app.use('/upload_image', express.static(path.join(__dirname, 'upload_image')));
 
 // New contact route
 app.use("/contact", contactRoute);
