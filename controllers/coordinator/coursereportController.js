@@ -6,6 +6,10 @@ const courseReportModel = require('../../models/coordinator/courseReportModel');
 const getmarksTarget = async (req, res) => {
   const { courseId, deptId, academicYear } = req.query;
 
+  if (req.user.role !== "coordinator") {
+            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        }
+
   if (!courseId || !deptId || !academicYear) {
     return res.status(400).send('Missing required parameters');
   }
