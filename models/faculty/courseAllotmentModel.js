@@ -45,5 +45,21 @@ const getFacultyWithNullAttainment = async (facultyId) => {
   }
 };
 
+const getFacultiesForCourse = async (course_id, academic_yr, dept_id) => {
+  const [rows] = await db.execute(
+    `SELECT 
+      ca.class,
+      ca.sem,
+      ca.faculty_id,
+      f.name
+    FROM Course_Allotment ca
+    JOIN Faculty f ON ca.faculty_id = f.faculty_id
+    WHERE ca.course_id = ? AND ca.academic_yr = ? AND ca.dept_id = ?`,
+    [course_id, academic_yr, dept_id]
+  );
 
-module.exports = { getFacultyById, getFacultyWithNullAttainment };
+  return rows;
+};
+
+
+module.exports = { getFacultyById, getFacultyWithNullAttainment, getFacultiesForCourse};
