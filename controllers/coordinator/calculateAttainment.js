@@ -5,6 +5,10 @@ const Controllers = {
     updateLevelTargets: async (req, res) => {
         try {
 
+            if (req.user.role !== "coordinator") {
+            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+            }
+
             // Extract parameters from the request body
             const { course_id, academic_yr, dept_id, modified_by } = req.body;
 
@@ -29,7 +33,16 @@ const Controllers = {
 async function updateLevelTarget(course_id, academic_yr, course_outcome, dept_id, modified_by) {
     const connection = await db.getConnection();
     try {
+
+        if (req.user.role !== "coordinator") {
+            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        } 
+
         await connection.beginTransaction();
+
+        if (req.user.role !== "coordinator") {
+            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        }
 
         // Determine the column name dynamically
         let column_name;
@@ -171,6 +184,11 @@ async function updateLevelTarget(course_id, academic_yr, course_outcome, dept_id
 async function updateCalculateAttainment(course_id, academic_yr, dept_id) {
     const connection = await db.getConnection();
     try {
+
+        if (req.user.role !== "coordinator") {
+            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        }
+
         await connection.beginTransaction();
 
         // Fetch attainment values from Level_Target
@@ -264,6 +282,11 @@ async function updateCalculateAttainment(course_id, academic_yr, dept_id) {
 async function updateAllCourseOutcomes(course_id, academic_yr, dept_id, modified_by) {
     const connection = await db.getConnection();
     try {
+
+        if (req.user.role !== "coordinator") {
+            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        }
+        
         // Fetch all columns from the marks table
         const [columns] = await connection.query(`
             SELECT COLUMN_NAME 

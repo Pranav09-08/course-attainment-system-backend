@@ -3,9 +3,6 @@ const AttainmentModel = require("../../models/coordinator/attainmentModel");
 // Get attainment data for a course coordinator
 const getAttainmentData = async (req, res) => {
     try {
-        if (req.user.role !== "coordinator" && req.user.role !== "faculty") {
-            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
-        }
 
         console.log("Received query params:", req.query);
         const { course_id, academic_yr, dept_id } = req.query;
@@ -84,6 +81,10 @@ const getCoordinatorCourses = async (req, res) => {
 const getFacultyInfo = async (req, res) => {
     try {
 
+        if (req.user.role !== "coordinator") {
+            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        }
+        
         // Extract query parameters
         const { courseId, deptId, academicYr } = req.query;
 

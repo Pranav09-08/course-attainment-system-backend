@@ -54,4 +54,20 @@ const getFacultyWithNullAttainment = async (req, res) => {
   }
 };
 
-module.exports = { getFaculty, getFacultyWithNullAttainment };
+const getFacultiesForCourse = async (req, res) => {
+  const { course_id, academic_yr, dept_id } = req.query;
+
+  if (!course_id || !academic_yr || !dept_id) {
+    return res.status(400).json({ error: "Missing required query parameters" });
+  }
+
+  try {
+    const faculties = await Faculty.getFacultiesForCourse(course_id, academic_yr, dept_id);
+    res.json({ faculties });
+  } catch (err) {
+    console.error("Error in getFacultiesForCourse controller:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { getFaculty, getFacultyWithNullAttainment,getFacultiesForCourse};
