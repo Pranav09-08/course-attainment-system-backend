@@ -2,6 +2,10 @@ const {insertStudents,fetchStudentsByDepartment,updateStudent,deleteStudent} = r
 
 // Upload students via JSON (not file)
 const uploadStudents = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
+
   try {
     const { students } = req.body;
 
@@ -45,6 +49,10 @@ const uploadStudents = async (req, res) => {
 
 
 const getStudents = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
+
     try {
       const { dept_id } = req.query; // Get dept_id from query parameters
   
@@ -62,6 +70,10 @@ const getStudents = async (req, res) => {
   
   // Update a student (only name, email, and mobile_no)
   const updateStudentController = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
+
     const { roll_no } = req.params; // Get old roll_no from URL params
     const { name, email, mobile_no } = req.body; // Get updated data from request body
   
@@ -114,6 +126,10 @@ const getStudents = async (req, res) => {
 
   // Delete a student by roll_no
 const deleteStudentController = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
+
   const { roll_no } = req.params; // Get roll_no from URL params
 
   // Validate roll_no

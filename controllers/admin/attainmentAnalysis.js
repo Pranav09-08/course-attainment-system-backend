@@ -1,7 +1,11 @@
 const CourseAttainment = require('../../models/admin/attainmentAnalysis');
 
 class CourseAttainmentController {
-    static async getAttainment(req, res) {
+static async getAttainment(req, res) {
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    }
+
         try {
             const { courseId } = req.params;
 
