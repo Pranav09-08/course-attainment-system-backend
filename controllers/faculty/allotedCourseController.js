@@ -1,4 +1,4 @@
-const Faculty = require('../../models/faculty/courseAllotmentModel');
+const Faculty = require('../../models/faculty/allotedCourseModel');
 
 // Controller to get all faculty course allotments
 const getFaculty = async (req, res) => {

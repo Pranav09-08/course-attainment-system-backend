@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const facultyController = require('../../controllers/faculty/courseAllotmentController');
+const facultyController = require('../../controllers/faculty/allotedCourseController');
 const authenticateToken = require("../../middleware/authLoginMiddleware");
 
 // Route to get faculty by ID (Protected with authentication)

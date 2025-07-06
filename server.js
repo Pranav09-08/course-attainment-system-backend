@@ -7,8 +7,8 @@ const path = require('path');
 
 // Faculty Imports for Routes
 const courseRoute = require('./routes/faculty/coursesRoute');
-const facultRoute2 = require('./routes/faculty/courseAllotmentRoute');
-const marksRoutes = require('./routes/faculty/courseAllotmentRoute');
+const facultRoute2 = require('./routes/faculty/allotedCourseRoute');
+const marksRoutes = require('./routes/faculty/allotedCourseRoute');
 const addmarks =require('./routes/faculty/marksRoute');
 const getStudentRoute =require('./routes/faculty/getStudentRoute');
 const updateMarksRoute = require('./routes/faculty/updateMarksRoute');

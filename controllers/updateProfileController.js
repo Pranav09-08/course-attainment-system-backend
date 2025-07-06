@@ -45,11 +45,11 @@ const uploadProfileImage = async (req, res) => {
 
     const imagePath = `/upload_image/${req.file.filename}`;
     const result = await profileModel.updateProfileImage(
-      req.params.id,
-      req.body.user_role,
-      imagePath
-    );
-
+  req.params.id,
+  req.body.user_role,
+  imagePath,
+  req.body.email  // add email here
+);
     res.json({
       success: true,
       message: 'Profile image uploaded successfully',

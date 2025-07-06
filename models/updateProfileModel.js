@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const db = require('../db/db');
 
 // Function to update faculty profile
@@ -16,33 +18,43 @@ const updateAdminProfile = async (deptId, updates) => {
   return { dept_id: deptId, dept_name, email };
 };
 
-// Add this function to handle profile image updates
-const updateProfileImage = async (userId, userRole, imagePath) => {
-  // Check if profile exists
+// ✅ UPDATED FUNCTION: Update and replace profile image
+const updateProfileImage = async (userId, userRole, newImagePath, email) => {
   const [existing] = await db.query(
-    'SELECT * FROM User_Profile WHERE user_id = ? AND user_role = ?',
+    'SELECT profile_image_path FROM User_Profile WHERE user_id = ? AND user_role = ?',
     [userId, userRole]
   );
 
   if (existing.length > 0) {
-    // Update existing record
+    const oldImagePath = existing[0].profile_image_path;
+
+    // Delete old image from upload_image folder if it exists
+    if (oldImagePath) {
+      const fullOldPath = path.join(__dirname, '..', oldImagePath);
+      if (fs.existsSync(fullOldPath)) {
+        fs.unlinkSync(fullOldPath);
+        console.log('✅ Old image deleted:', fullOldPath);
+      }
+    }
+
+    // Update with new image path
     await db.query(
       'UPDATE User_Profile SET profile_image_path = ?, updated_at = NOW() WHERE user_id = ? AND user_role = ?',
-      [imagePath, userId, userRole]
+      [newImagePath, userId, userRole]
     );
   } else {
-    // Create new record
+    // Insert new record
     await db.query(
-      'INSERT INTO User_Profile (user_id, user_role, profile_image_path) VALUES (?, ?, ?)',
-      [userId, userRole, imagePath]
+      'INSERT INTO User_Profile (user_id, user_role, email, profile_image_path) VALUES (?, ?, ?, ?)',
+      [userId, userRole, email, newImagePath]
     );
   }
 
-  return { success: true, imagePath };
+  return { success: true, imagePath: newImagePath };
 };
 
 module.exports = {
   updateFacultyProfile,
   updateAdminProfile,
-  updateProfileImage  // Add this to your exports
+  updateProfileImage
 };
