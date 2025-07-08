@@ -1,16 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  uploadStudents, 
+  getStudents, 
+  updateStudentController, 
+  deleteStudentController 
+} = require('../../controllers/admin/studentController');
 const multer = require('multer');
-const { uploadStudents, getStudents,updateStudentController,deleteStudentController } = require('../../controllers/admin/studentController');
-const { updateStudent } = require('../../models/admin/studentModel');
+const upload = multer({ storage: multer.memoryStorage() });
 
-const upload = multer({ storage: multer.memoryStorage() }); // Store file in memory
-
-// Route to upload CSV file for adding students
+// Upload students (now expects sem and academic_yr in body)
 router.post('/upload-students', upload.single('file'), uploadStudents);
-router.get('/get-students',getStudents);
-router.put('/update-student/:roll_no', updateStudentController);
-router.delete('/delete-student/:roll_no', deleteStudentController); // Delete route
 
+// Get students (now requires sem and academic_yr as query params)
+router.get('/get-students', getStudents);
+
+// Update student (now requires sem and academic_yr in body)
+router.put('/update-student/:roll_no', updateStudentController);
+
+// Delete student (now requires sem and academic_yr as query params)
+router.delete('/delete-student/:roll_no', deleteStudentController);
 
 module.exports = router;
