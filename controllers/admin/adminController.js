@@ -1,5 +1,21 @@
 const Admin = require('../../models/admin/adminModel');
 const bcrypt = require("bcryptjs"); // Make sure to import this
+const db = require('../../db/db');
+
+const generateFacultyId = async () => {
+  const [rows] = await db.query(`
+    SELECT faculty_id FROM Faculty 
+    WHERE faculty_id LIKE 'emp%' 
+    ORDER BY CAST(SUBSTRING(faculty_id, 4) AS UNSIGNED) DESC 
+    LIMIT 1
+  `);
+
+  if (rows.length === 0) return 'emp1';
+
+  const lastIdNum = parseInt(rows[0].faculty_id.replace('emp', ''), 10);
+  return `emp${lastIdNum + 1}`;
+};
+
 
 // Add a new faculty member
 const addFaculty = async (req, res) => {
@@ -7,23 +23,24 @@ const addFaculty = async (req, res) => {
     return res.status(403).json({ msg: "Access denied. Only admin can access this." });
   }
 
-  const { faculty_id, name, email, mobile_no, dept_id, password } = req.body;
+  const { name, email, mobile_no, dept_id, password } = req.body;
 
-  console.log(`📥 Request to add new faculty: ${faculty_id}, ${name}, ${email}, Dept: ${dept_id}`);
+  console.log(`📥 Request to add new faculty: ${name}, ${email}, Dept: ${dept_id}`);
 
-  if (!faculty_id || !name || !email || !mobile_no || !dept_id || !password) {
+  if (!name || !email || !mobile_no || !dept_id || !password) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
   try {
+    const faculty_id = await generateFacultyId(); // 👈 generate new ID
     // 🔐 Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert faculty with hashed password
-    const result = await Admin.createFaculty(faculty_id, name, email, mobile_no, dept_id, hashedPassword);
+    const result = await Admin.createFaculty(faculty_id,name, email, mobile_no, dept_id, hashedPassword);
 
     console.log('✅ Faculty added successfully:', result);
-    res.status(201).json({ message: 'Faculty added successfully', faculty_id });
+    res.status(201).json({ message: 'Faculty added successfully',faculty_id});
 
   } catch (err) {
     console.error('❌ Error adding faculty:', err);
