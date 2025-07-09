@@ -1,156 +1,174 @@
-const {insertStudents,fetchStudentsByDepartment,updateStudent,deleteStudent} = require("../../models/admin/studentModel");
+const { insertStudents, fetchStudentsByDepartment, updateStudent, deleteStudent } = require("../../models/admin/studentModel");
 
-// Upload students via JSON (not file)
 const uploadStudents = async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
-  }
+  // if (req.user.role !== "admin") {
+  //   return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  // }
 
   try {
-    const { students } = req.body;
+    const { students, sem, academic_yr } = req.body;
 
-    // Validate input: Ensure students is a non-empty array
+    // Validate inputs
     if (!students || !Array.isArray(students) || students.length === 0) {
-      return res.status(400).json({ error: "Invalid input: students must be a non-empty array" });
+      return res.status(400).json({ error: "Students data must be a non-empty array" });
+    }
+    
+    if (!['odd', 'even'].includes(sem.toLowerCase())) {
+      return res.status(400).json({ error: "Semester must be 'odd' or 'even'" });
+    }
+    
+    if (!/^\d{4}_\d{2}$/.test(academic_yr)) {
+      return res.status(400).json({ error: "Academic year must be in format YYYY_YY" });
     }
 
-    // Validate each student object
-    const requiredFields = ["roll_no", "name", "email", "mobile_no", "class", "academic_yr", "dept_id"];
+    // Validate each student
+    const requiredFields = ["roll_no", "name", "class"];
     for (const student of students) {
-      const missingFields = requiredFields.filter((field) => !student[field]);
+      const missingFields = requiredFields.filter(field => !student[field]);
       if (missingFields.length > 0) {
         return res.status(400).json({
-          error: `Missing required fields for student: ${missingFields.join(", ")}`,
+          error: `Missing required fields: ${missingFields.join(", ")}`
         });
+      }
+      
+      if (student.class === 'TE' && !student.el1) {
+        return res.status(400).json({ error: "TE students must have el1 specified" });
+      }
+      
+      if (student.class === 'BE' && (!student.el1 || !student.el2)) {
+        return res.status(400).json({ error: "BE students must have both el1 and el2 specified" });
       }
     }
 
-    // Insert students into the database
-    await insertStudents(students);
+    // Insert students
+    const result = await insertStudents(students, sem, academic_yr);
+    
+    const response = {
+      message: `${result.insertedCount} students added to ${sem}_${academic_yr} table`,
+      tableName: result.tableName,
+      insertedCount: result.insertedCount
+    };
 
-    res.status(201).json({ message: "✅ Students added successfully!" });
+    if (result.duplicateCount > 0) {
+      response.warning = result.warning;
+      response.duplicateCount = result.duplicateCount;
+      response.duplicateRollNos = result.duplicateRollNos;
+    }
+
+    res.status(201).json(response);
+
   } catch (err) {
-    console.error("❌ Error inserting students:", err);
-
-    if (err.code === 11000) {
-      // MongoDB duplicate key error
-      return res.status(400).json({ error: "Duplicate entry: A student with the same roll number already exists." });
-    }
-
-    if (err.name === "ValidationError") {
-      // Mongoose validation error
-      return res.status(400).json({ error: `Validation Error: ${err.message}` });
-    }
-
-    // Handle generic errors
-    res.status(500).json({ error: "Internal Server Error. Please try again later." });
+    console.error("Upload error:", err);
+    res.status(500).json({ 
+      error: err.message || "Failed to upload students" 
+    });
   }
 };
 
-
+// Get students
 const getStudents = async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  // if (req.user.role !== "admin") {
+  //   return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  // }
+
+  try {
+    const { dept_id, sem, academic_yr } = req.query;
+    
+    if (!dept_id || !sem || !academic_yr) {
+      return res.status(400).json({ 
+        error: "Department ID, semester and academic year are required" 
+      });
+    }
+
+    const students = await fetchStudentsByDepartment(dept_id, sem, academic_yr);
+    res.status(200).json(students);
+    
+  } catch (error) {
+    console.error("Fetch error:", error);
+    res.status(500).json({ 
+      error: error.message || "Failed to fetch students" 
+    });
   }
+};
 
-    try {
-      const { dept_id } = req.query; // Get dept_id from query parameters
-  
-      if (!dept_id) {
-        return res.status(400).json({ message: "Department ID is required" });
-      }
-  
-      const students = await fetchStudentsByDepartment(dept_id);
-      return res.status(200).json(students);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-      return res.status(500).json({ message: "Internal server error" });
+// Update student
+const updateStudentController = async (req, res) => {
+  // if (req.user.role !== "admin") {
+  //   return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  // }
+
+  try {
+    const { roll_no } = req.params;
+    const { sem, academic_yr, ...updatedData } = req.body;
+    
+    if (!sem || !academic_yr) {
+      return res.status(400).json({ 
+        error: "Semester and academic year are required" 
+      });
     }
-  };
-  
-  // Update a student (only name, email, and mobile_no)
-  const updateStudentController = async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+
+    // Validate inputs
+    if (updatedData.name && !/^[A-Za-z\s]+$/.test(updatedData.name)) {
+      return res.status(400).json({ error: "Name must contain only letters and spaces" });
+    }
+
+    const result = await updateStudent(roll_no, updatedData, sem, academic_yr);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    res.status(200).json({ 
+      message: "Student updated successfully",
+      affectedRows: result.affectedRows
+    });
+
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({ 
+      error: err.message || "Failed to update student" 
+    });
   }
+};
 
-    const { roll_no } = req.params; // Get old roll_no from URL params
-    const { name, email, mobile_no } = req.body; // Get updated data from request body
-  
-    // Validate roll_no
-    if (!Number.isInteger(Number(roll_no))) {
-      return res.status(400).json({ error: "Roll number must be an integer." });
-    }
-  
-    // Validate name (only alphabets and spaces)
-    if (name && !/^[A-Za-z\s]+$/.test(name)) {
-      return res.status(400).json({ error: "Name must contain only alphabets and spaces." });
-    }
-  
-    // Validate email (valid email format)
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: "Invalid email format." });
-    }
-  
-    // Validate mobile_no (exactly 10 digits)
-    if (mobile_no && !/^\d{10}$/.test(mobile_no)) {
-      return res.status(400).json({ error: "Mobile number must be exactly 10 digits." });
-    }
-  
-    try {
-      // Construct the updatedData object
-      const updatedData = {
-        name,
-        email,
-        mobile_no,
-      };
-  
-      // Update the student in the database
-      const result = await updateStudent(roll_no, updatedData);
-  
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Student not found." });
-      }
-  
-      res.status(200).json({ message: "✅ Student updated successfully!" });
-    } catch (err) {
-      console.error("❌ Error updating student:", err);
-  
-      if (err.code === "ER_DUP_ENTRY") {
-        return res.status(400).json({ error: "Duplicate entry: A student with the same email or mobile number already exists." });
-      }
-  
-      res.status(500).json({ error: "Internal Server Error. Please try again later." });
-    }
-  };
-
-  // Delete a student by roll_no
+// Delete student
 const deleteStudentController = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ msg: "Access denied. Only admin can access this." });
   }
 
-  const { roll_no } = req.params; // Get roll_no from URL params
-
-  // Validate roll_no
-  if (!Number.isInteger(Number(roll_no))) {
-    return res.status(400).json({ error: "Roll number must be an integer." });
-  }
-
   try {
-    // Delete the student from the database
-    const result = await deleteStudent(roll_no);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Student not found." });
+    const { roll_no } = req.params;
+    const { sem, academic_yr } = req.query;
+    
+    if (!sem || !academic_yr) {
+      return res.status(400).json({ 
+        error: "Semester and academic year are required" 
+      });
     }
 
-    res.status(200).json({ message: "✅ Student deleted successfully!" });
+    const result = await deleteStudent(roll_no, sem, academic_yr);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    res.status(200).json({ 
+      message: "Student deleted successfully",
+      affectedRows: result.affectedRows
+    });
+
   } catch (err) {
-    console.error("❌ Error deleting student:", err);
-    res.status(500).json({ error: "Internal Server Error. Please try again later." });
+    console.error("Delete error:", err);
+    res.status(500).json({ 
+      error: err.message || "Failed to delete student" 
+    });
   }
 };
 
-  
-module.exports = { uploadStudents,getStudents, updateStudentController, deleteStudentController};
+module.exports = { 
+  uploadStudents, 
+  getStudents, 
+  updateStudentController, 
+  deleteStudentController 
+};
