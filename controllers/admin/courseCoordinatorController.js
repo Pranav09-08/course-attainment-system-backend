@@ -1,6 +1,10 @@
 const { allotCourseCoordinator, getCourseCoordinatorsByDept, updateCourseCoordinatorFaculty, deleteCourseCoordinator} = require("../../models/admin/courseCoordinatorModel");
 
 const allotCourseCoordinatorHandler = async (req, res) => {
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    }
+
     try {
         const courseData = req.body;
         console.log("📥 Received request to allot course coordinator:", courseData);
@@ -30,6 +34,10 @@ const allotCourseCoordinatorHandler = async (req, res) => {
 
 // 🟢 Fetch course coordinators
 const getCourseCoordinatorsByDeptHandler = async (req, res) => {
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    }
+
     try {
         const { dept_id } = req.params; // Extract dept_id from request params
 
@@ -54,6 +62,11 @@ const getCourseCoordinatorsByDeptHandler = async (req, res) => {
 };
 
 const updateCourseCoordinatorFacultyHandler = async (req, res) => {
+
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    }
+
     try {
         const { courseId, academicYr, sem } = req.params;
         const { faculty_id } = req.body;
@@ -88,6 +101,10 @@ const updateCourseCoordinatorFacultyHandler = async (req, res) => {
 };
 
 const deleteCourseCoordinatorHandler = async (req, res) => {
+    if (req.user.role !== "admin") {
+        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    }
+
     try {
       const { courseId, academicYr, sem } = req.params;
   
