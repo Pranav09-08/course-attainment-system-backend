@@ -1,81 +1,62 @@
 const CourseAllotment = require("../../models/admin/courseAllotmentModel");
 
-//function to allot new course
+// Function to allot new course
 const allotCourse = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ msg: "Access denied. Only admin can access this." });
   }
-  
+
   try {
     const courseData = req.body;
 
-    console.log("📥 Received request to allot course:", courseData);
+    // Convert faculty_id to string if it's a number
+    if (typeof courseData.faculty_id === 'number') {
+      courseData.faculty_id = courseData.faculty_id.toString();
+    }
+
+    // Convert single class to array if class is string (for FE/SE)
+    if (typeof courseData.class === 'string') {
+      courseData.class = [courseData.class];
+    }
 
     const result = await CourseAllotment.allotCourse(courseData);
 
-    if (result) {
-      console.log("✅ Course allotted successfully");
-      return res.status(201).json({ message: "Course allotted successfully" });
-    } else {
-      return res.status(400).json({ error: "Failed to allot course" });
-    }
+    const message = `✅ Allotment complete. Allotted: ${result.inserted.length}, Skipped: ${result.skipped.length}`;
+    return res.status(201).json({
+      message,
+      data: result
+    });
   } catch (err) {
     console.error("❌ Error allotting course:", err.message);
 
-    // 🔍 Handle Foreign Key Constraint Error (Faculty ID or Course ID Not Found)
-    if (
-      err.message.includes("Cannot add or update a child row") &&
-      err.message.includes("FOREIGN KEY")
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Faculty ID or Course ID does not exist. Please enter a valid faculty_id and course_id.",
-        });
-    } else if (err.message.includes("Course already allotted")) {
-      return res
-        .status(409)
-        .json({
-          error:
-            "This course is already allotted to the faculty for this academic year.",
-        });
-    } else if (err.message.includes("ER_TRUNCATED_WRONG_VALUE")) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Invalid data format. Please check course_id, faculty_id, and other values.",
-        });
+    if (err.message.includes("Faculty ID does not exist")) {
+      return res.status(400).json({ error: err.message });
+    } else if (err.message.includes("At least one class")) {
+      return res.status(400).json({ error: err.message });
     } else {
-      return res
-        .status(500)
-        .json({ error: "Internal Server Error", details: err.message });
+      return res.status(500).json({ error: "Internal Server Error", details: err.message });
     }
   }
 };
 
-//function get all alloted courses
+
+// Function get all allotted courses
 const getAllottedCourses = async (req, res) => {
-    if (req.user.role !== "admin") {
-        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
-    }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
 
   try {
-    const { dept_id } = req.params; // Extract dept_id from request params
+    const { dept_id } = req.params;
 
     if (!dept_id || isNaN(dept_id)) {
-      return res
-        .status(400)
-        .json({ error: "Invalid or missing department ID" });
+      return res.status(400).json({ error: "Invalid or missing department ID" });
     }
 
-    const courses = await CourseAllotment.getAllottedCourses(dept_id); // Pass dept_id to the method
+    const courses = await CourseAllotment.getAllottedCourses(dept_id);
 
     if (courses.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No course allotments found for this department" });
+      return res.status(404).json({ message: "No course allotments found for this department" });
     }
 
     return res.status(200).json({ data: courses });
@@ -85,15 +66,15 @@ const getAllottedCourses = async (req, res) => {
   }
 };
 
-//function to update the course allotment
+// Function to update the course allotment
 const updateCourseAllotmentFaculty = async (req, res) => {
-    if (req.user.role !== "admin") {
-        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
-    }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
 
   try {
     const { courseId, academicYr, sem } = req.params;
-    const { faculty_id } = req.body;
+    let { faculty_id } = req.body;
 
     console.log("📥 Received request to update faculty for course allotment:", {
       courseId,
@@ -104,62 +85,56 @@ const updateCourseAllotmentFaculty = async (req, res) => {
 
     // Validate courseId, academicYr, sem, and faculty_id
     if (!courseId || !academicYr || !sem || !faculty_id) {
-      return res
-        .status(400)
-        .json({
-          error: "courseId, academicYr, sem, and faculty_id are required",
-        });
+      return res.status(400).json({
+        error: "courseId, academicYr, sem, and faculty_id are required",
+      });
+    }
+
+    // Ensure faculty_id is a string
+    if (typeof faculty_id === 'number') {
+      faculty_id = faculty_id.toString();
     }
 
     const result = await CourseAllotment.updateCourseAllotmentFaculty(
       courseId,
-      parseInt(academicYr),
+      academicYr,
       sem,
-      parseInt(faculty_id)
+      faculty_id // Now passing as string
     );
 
     if (result) {
       console.log("✅ Faculty updated successfully");
-      return res
-        .status(200)
-        .json({ message: "Faculty updated successfully", data: result });
+      return res.status(200).json({ message: "Faculty updated successfully", data: result });
     } else {
       return res.status(400).json({ error: "Failed to update faculty" });
     }
   } catch (err) {
     console.error("❌ Error updating faculty:", err.message);
 
-    // 🔍 Handle specific errors
+    // Handle specific errors
     if (err.message.includes("Course allotment not found")) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "Course allotment not found for the given courseId, academicYr, and sem",
-        });
+      return res.status(404).json({
+        error: "Course allotment not found for the given courseId, academicYr, and sem",
+      });
     } else if (err.message.includes("New faculty ID does not exist")) {
       return res.status(400).json({ error: "New faculty ID does not exist" });
     } else if (err.message.includes("New faculty is already assigned")) {
-      return res
-        .status(409)
-        .json({
-          error:
-            "New faculty is already assigned to this course for the given academic year and semester",
-        });
+      return res.status(409).json({
+        error: "New faculty is already assigned to this course for the given academic year and semester",
+      });
     } else if (err.message.includes("Failed to update faculty ID")) {
       return res.status(500).json({ error: "Failed to update faculty ID" });
     } else {
-      return res
-        .status(500)
-        .json({ error: "Internal Server Error", details: err.message });
+      return res.status(500).json({ error: "Internal Server Error", details: err.message });
     }
   }
 };
 
+// Function to delete course allotment
 const deleteCourseAllotment = async (req, res) => {
-    if (req.user.role !== "admin") {
-        return res.status(403).json({ msg: "Access denied. Only admin can access this." });
-    }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
 
   try {
     const { courseId, academicYr, sem } = req.params;
@@ -172,9 +147,7 @@ const deleteCourseAllotment = async (req, res) => {
 
     // Validate input
     if (!courseId || !academicYr || !sem) {
-      return res
-        .status(400)
-        .json({ error: "courseId, academicYr, and sem are required" });
+      return res.status(400).json({ error: "courseId, academicYr, and sem are required" });
     }
 
     const result = await CourseAllotment.deleteCourseAllotment(
@@ -185,16 +158,12 @@ const deleteCourseAllotment = async (req, res) => {
 
     if (result) {
       console.log("✅ Course allotment deleted successfully");
-      return res
-        .status(200)
-        .json({
-          message: "Course allotment deleted successfully",
-          data: result,
-        });
+      return res.status(200).json({
+        message: "Course allotment deleted successfully",
+        data: result,
+      });
     } else {
-      return res
-        .status(400)
-        .json({ error: "Failed to delete course allotment" });
+      return res.status(400).json({ error: "Failed to delete course allotment" });
     }
   } catch (err) {
     console.error("❌ Error deleting course allotment:", err.message);
@@ -203,9 +172,7 @@ const deleteCourseAllotment = async (req, res) => {
     if (err.message.includes("Course allotment not found")) {
       return res.status(404).json({ error: "Course allotment not found" });
     } else {
-      return res
-        .status(500)
-        .json({ error: "Internal Server Error", details: err.message });
+      return res.status(500).json({ error: "Internal Server Error", details: err.message });
     }
   }
 };
