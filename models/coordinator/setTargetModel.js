@@ -12,6 +12,7 @@ const Models = {
     c.class, 
     c.sem, 
     d.dept_name,  -- Fetch dept_name from Department table
+    c.dept_id,
     c.attainment_score, 
     c.academic_yr,
     ct.target1, 
@@ -31,6 +32,7 @@ LEFT JOIN Department AS d
 WHERE c.faculty_id = ?;
         `;
         const [courses] = await db.execute(query, [faculty_id]);
+        console.log(courses);
         return courses;
     },
 

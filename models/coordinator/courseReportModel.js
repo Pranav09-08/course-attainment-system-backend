@@ -17,11 +17,6 @@ const getMarksData = async (courseId, deptId, academicYear,sem) => {
   const studentTableName = `Student_${sem}_${academicYear}`;
 
   sem = sem.toUpperCase();
-  // Validate the table name to prevent SQL injection
-  // const validNameRegex = /^Student_(odd|even)_[0-9]{4}_[0-9]+$/;
-  // if (!validNameRegex.test(studentTableName)) {
-  //   throw new Error("Invalid student table name");
-  // }
 
   const query = `
     SELECT 
