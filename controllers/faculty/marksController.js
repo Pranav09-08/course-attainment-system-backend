@@ -42,7 +42,7 @@ const uploadMarks = async (req, res) => {
     .on("end", async () => {
       try {
         console.log("✅ Parsed CSV successfully:", marksData.length, "records");
-        const result = await Marks.insertOrUpdateMarks(marksData, studentClass, academic_yr, dept_id);
+        const result = await Marks.insertOrUpdateMarks(marksData, studentClass, academic_yr, dept_id,sem);
 
     
         fs.unlinkSync(filePath); // Delete file after processing
