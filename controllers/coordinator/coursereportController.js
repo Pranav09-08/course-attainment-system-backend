@@ -4,13 +4,13 @@ const courseReportModel = require('../../models/coordinator/courseReportModel');
 
 // Handle GET request to generate the report
 const getmarksTarget = async (req, res) => {
-  const { courseId, deptId, academicYear } = req.query;
+  const { courseId, deptId, academicYear,sem } = req.query;
 
   if (req.user.role !== "coordinator") {
             return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
         }
 
-  if (!courseId || !deptId || !academicYear) {
+  if (!courseId || !deptId || !academicYear ||!sem) {
     return res.status(400).send('Missing required parameters');
   }
 
@@ -24,11 +24,11 @@ const getmarksTarget = async (req, res) => {
     console.log('Target Data:', target);
 
     // Fetch marks data
-    const marksData = await courseReportModel.getMarksData(courseId, deptId, academicYear);
+    const marksData = await courseReportModel.getMarksData(courseId, deptId, academicYear,sem);
     if (marksData.length === 0) {
       return res.status(404).send('No marks data found');
     }
-    console.log('Marks Data:', marksData);
+    // console.log('Marks Data:', marksData);
 
     // Prepare response with only target and marks data
     const responseData = {

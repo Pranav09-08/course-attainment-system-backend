@@ -34,15 +34,15 @@ async function updateLevelTarget(course_id, academic_yr, course_outcome, dept_id
     const connection = await db.getConnection();
     try {
 
-        if (req.user.role !== "coordinator") {
-            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
-        } 
+        // if (req.user.role !== "coordinator") {
+        //     return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        // } 
 
         await connection.beginTransaction();
 
-        if (req.user.role !== "coordinator") {
-            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
-        }
+        // if (req.user.role !== "coordinator") {
+        //     return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        // }
 
         // Determine the column name dynamically
         let column_name;
@@ -185,9 +185,9 @@ async function updateCalculateAttainment(course_id, academic_yr, dept_id) {
     const connection = await db.getConnection();
     try {
 
-        if (req.user.role !== "coordinator") {
-            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
-        }
+        // if (req.user.role !== "coordinator") {
+        //     return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        // }
 
         await connection.beginTransaction();
 
@@ -283,9 +283,9 @@ async function updateAllCourseOutcomes(course_id, academic_yr, dept_id, modified
     const connection = await db.getConnection();
     try {
 
-        if (req.user.role !== "coordinator") {
-            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
-        }
+        // if (req.user.role !== "coordinator") {
+        //     return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+        // }
         
         // Fetch all columns from the marks table
         const [columns] = await connection.query(`
