@@ -4,9 +4,9 @@ const router = express.Router();
 const { getMarks, updateMarks } = require("../../controllers/faculty/updateMarksController");
 
 // Fetch marks for a specific student, course, department, and academic year
-router.get("/marks/get_marks/:roll_no/:course_id/:dept_id/:academic_yr", getMarks);
+router.get("/marks/get_marks/:roll_no/:course_id/:dept_id/:academic_yr/:sem", getMarks);
 
 // Update marks for a specific student, course, department, and academic year
-router.post("/marks/update_marks/:roll_no/:course_id/:dept_id/:academic_yr", updateMarks);
+router.post("/marks/update_marks/:roll_no/:course_id/:dept_id/:academic_yr/:sem", updateMarks);
 
 module.exports = router;

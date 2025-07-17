@@ -4,9 +4,9 @@ const Faculty = require('../../models/faculty/allotedCourseModel');
 const getFaculty = async (req, res) => {
   const facultyId = req.params.id;
 
-  if (!Number.isInteger(Number(facultyId))) {
-    return res.status(400).json({ message: 'Invalid Faculty ID' });
-  }
+  if (!facultyId) {
+  return res.status(400).json({ message: 'Faculty ID is required' });
+}
 
   console.log(`📥 Request received for Faculty ID: ${facultyId}`);
 
@@ -31,9 +31,9 @@ const getFaculty = async (req, res) => {
 const getFacultyWithNullAttainment = async (req, res) => {
   const facultyId = req.params.id;
 
-  if (!Number.isInteger(Number(facultyId))) {
-    return res.status(400).json({ message: 'Invalid Faculty ID' });
-  }
+  if (!facultyId) {
+  return res.status(400).json({ message: 'Faculty ID is required' });
+}
 
   console.log(`📥 Fetching faculty courses with NULL attainment for Faculty ID: ${facultyId}`);
 
