@@ -6,7 +6,7 @@ const Controllers = {
         try {
 
             if (req.user.role !== "coordinator") {
-            return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
+                return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
             }
 
             // Extract parameters from the request body
@@ -34,16 +34,7 @@ async function updateLevelTarget(course_id, academic_yr, course_outcome, dept_id
     const connection = await db.getConnection();
     try {
 
-        // if (req.user.role !== "coordinator") {
-        //     return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
-        // } 
-
         await connection.beginTransaction();
-
-        // if (req.user.role !== "coordinator") {
-        //     return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
-        // }
-
         // Determine the column name dynamically
         let column_name;
         if (course_outcome.startsWith('u')) {
@@ -286,7 +277,7 @@ async function updateAllCourseOutcomes(course_id, academic_yr, dept_id, modified
         // if (req.user.role !== "coordinator") {
         //     return res.status(403).json({ msg: "Access denied. Only Coordinator can access this." });
         // }
-        
+
         // Fetch all columns from the marks table
         const [columns] = await connection.query(`
             SELECT COLUMN_NAME 
@@ -296,12 +287,47 @@ async function updateAllCourseOutcomes(course_id, academic_yr, dept_id, modified
             AND COLUMN_NAME NOT IN ('roll_no', 'course_id', 'sem', 'dept_id','academic_yr')
         `);
 
-        // Use Promise.all to wait for all updateLevelTarget calls to complete
-        await Promise.all(columns.map(async (column) => {
-            const course_outcome = column.COLUMN_NAME;
+        let columnNames = columns.map(col => col.COLUMN_NAME);
+
+        // Sort column names in logical order (e.g., u1co1, u1co2, u2co3, i_co1, end_sem, etc.)
+        columnNames.sort((a, b) => {
+            const getSortValue = (name) => {
+                if (/^u(\d)_co(\d)$/i.test(name)) {
+                    const [, unit, co] = name.match(/^u(\d)_co(\d)$/i);
+                    return [1, parseInt(unit), parseInt(co)]; // uX_coY
+                } else if (/^i_co(\d)$/i.test(name)) {
+                    const [, co] = name.match(/^i_co(\d)$/i);
+                    return [2, 0, parseInt(co)]; // i_coX
+                } else if (name === 'end_sem') {
+                    return [3, 0, 0];
+                } else if (name === 'final_sem') {
+                    return [4, 0, 0];
+                }
+                return [5, 0, 0]; // anything else goes last
+            };
+
+            const valA = getSortValue(a);
+            const valB = getSortValue(b);
+
+            for (let i = 0; i < valA.length; i++) {
+                if (valA[i] !== valB[i]) return valA[i] - valB[i];
+            }
+            return 0;
+        });
+
+
+
+        for (const course_outcome of columnNames) {
             console.log(`Processing course outcome: ${course_outcome}`);
             await updateLevelTarget(course_id, academic_yr, course_outcome, dept_id, modified_by);
-        }));
+        }
+
+        // Use Promise.all to wait for all updateLevelTarget calls to complete
+        // await Promise.all(columns.map(async (column) => {
+        //     const course_outcome = column.COLUMN_NAME;
+        //     console.log(`Processing course outcome: ${course_outcome}`);
+        //     await updateLevelTarget(course_id, academic_yr, course_outcome, dept_id, modified_by);
+        // }));
 
         // Now that all course outcomes have been updated, call updateCalculateAttainment
         await updateCalculateAttainment(course_id, academic_yr, dept_id);
