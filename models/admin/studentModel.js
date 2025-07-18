@@ -43,13 +43,32 @@ const checkOrCreateTable = async (sem, academic_yr) => {
 const insertStudents = async (students, sem, academic_yr) => {
   const tableName = await checkOrCreateTable(sem, academic_yr);
   
+  // First get existing roll numbers to filter out duplicates
+  const existingRollNos = await getExistingRollNos(tableName);
+  
+  // Filter out duplicates
+  const newStudents = students.filter(student => 
+    !existingRollNos.includes(student.roll_no)
+  );
+
+  if (newStudents.length === 0) {
+    return {
+      success: true,
+      insertedCount: 0,
+      duplicateCount: students.length,
+      duplicateRollNos: students.map(s => s.roll_no),
+      tableName,
+      warning: `All ${students.length} students already exist in database`
+    };
+  }
+
   const query = `
     INSERT INTO ?? 
     (roll_no, seat_no, name, dept_id, class, sem, academic_yr, el1, el2)
     VALUES ?
   `;
 
-  const values = students.map(student => [
+  const values = newStudents.map(student => [
     student.roll_no,
     student.seat_no || null,
     student.name,
@@ -66,25 +85,52 @@ const insertStudents = async (students, sem, academic_yr) => {
     return { 
       success: true,
       insertedCount: result.affectedRows,
+      duplicateCount: students.length - result.affectedRows,
+      duplicateRollNos: students
+        .filter(student => !newStudents.includes(student))
+        .map(s => s.roll_no),
       tableName,
-      duplicates: 0 // No duplicates when successful
+      warning: (students.length - result.affectedRows) > 0 ? 
+        `${students.length - result.affectedRows} duplicate entries skipped` : 
+        null
     };
   } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      // Handle duplicates by inserting one by one
-      return handleDuplicateEntries(students, tableName, sem, academic_yr);
+    console.error('Bulk insert error:', err);
+    // Fallback to individual inserts if bulk insert fails
+    return handleIndividualInserts(students, tableName, sem, academic_yr);
+  }
+};
+
+// Helper function to get existing roll numbers
+const getExistingRollNos = async (tableName) => {
+  const query = `SELECT roll_no FROM ??`;
+  try {
+    const [rows] = await db.query(query, [tableName]);
+    return rows.map(row => row.roll_no);
+  } catch (err) {
+    if (err.code === 'ER_NO_SUCH_TABLE') {
+      return []; // Return empty array if table doesn't exist
     }
     throw err;
   }
 };
 
-const handleDuplicateEntries = async (students, tableName, sem, academic_yr) => {
+// Handle individual student inserts
+const handleIndividualInserts = async (students, tableName, sem, academic_yr) => {
+  const existingRollNos = await getExistingRollNos(tableName);
   let insertedCount = 0;
   let duplicateCount = 0;
   const duplicateRollNos = [];
   
   for (const student of students) {
     try {
+      // Skip if already exists
+      if (existingRollNos.includes(student.roll_no)) {
+        duplicateCount++;
+        duplicateRollNos.push(student.roll_no);
+        continue;
+      }
+
       const [result] = await db.query(
         `INSERT INTO ?? 
          (roll_no, seat_no, name, dept_id, class, sem, academic_yr, el1, el2)

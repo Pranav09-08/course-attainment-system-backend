@@ -1,9 +1,9 @@
 const { insertStudents, fetchStudentsByDepartment, updateStudent, deleteStudent } = require("../../models/admin/studentModel");
 
 const uploadStudents = async (req, res) => {
-  // if (req.user.role !== "admin") {
-  //   return res.status(403).json({ msg: "Access denied. Only admin can access this." });
-  // }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
 
   try {
     const { students, sem, academic_yr } = req.body;
@@ -67,9 +67,9 @@ const uploadStudents = async (req, res) => {
 
 // Get students
 const getStudents = async (req, res) => {
-  // if (req.user.role !== "admin") {
-  //   return res.status(403).json({ msg: "Access denied. Only admin can access this." });
-  // }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
 
   try {
     const { dept_id, sem, academic_yr } = req.query;
@@ -93,9 +93,9 @@ const getStudents = async (req, res) => {
 
 // Update student
 const updateStudentController = async (req, res) => {
-  // if (req.user.role !== "admin") {
-  //   return res.status(403).json({ msg: "Access denied. Only admin can access this." });
-  // }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+  }
 
   try {
     const { roll_no } = req.params;
