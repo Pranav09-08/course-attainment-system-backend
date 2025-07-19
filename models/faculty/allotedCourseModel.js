@@ -51,7 +51,8 @@ const getFacultiesForCourse = async (course_id, academic_yr, dept_id) => {
       ca.class,
       ca.sem,
       ca.faculty_id,
-      f.name
+      f.name,
+      f.email
     FROM Course_Allotment ca
     JOIN Faculty f ON ca.faculty_id = f.faculty_id
     WHERE ca.course_id = ? AND ca.academic_yr = ? AND ca.dept_id = ?`,
