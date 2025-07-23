@@ -48,3 +48,5 @@ module.exports = {
   getCoordinatorById,
   getFacultyByDept  // Make sure this is exported
 };
+
+
