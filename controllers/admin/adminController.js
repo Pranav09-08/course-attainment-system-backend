@@ -1,6 +1,21 @@
 const Admin = require('../../models/admin/adminModel');
-const bcrypt = require("bcryptjs"); // Make sure to import this
+const bcrypt = require("bcryptjs");
 const db = require('../../db/db');
+const nodemailer = require('nodemailer');
+
+// Configure email transporter with better options
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  // Additional settings for better reliability
+  pool: true,
+  maxConnections: 1,
+  rateDelta: 20000, // 20 seconds delay between messages
+  rateLimit: 5, // max 5 messages per rateDelta
+});
 
 const generateFacultyId = async () => {
   const [rows] = await db.query(`
@@ -16,35 +31,132 @@ const generateFacultyId = async () => {
   return `emp${lastIdNum + 1}`;
 };
 
+const sendCredentialsEmail = async (email, facultyId, password, name) => {
+  console.log("Preparing to send faculty credentials email to:", email);
+  
+  const resetLink = `https://teacher-attainment-system-frontend.vercel.app/forgot-password`;
+  
+  const mailOptions = {
+    from: `"PICT Admin" <${process.env.EMAIL_USER}>`, // Consistent sender
+    to: email,
+    subject: 'Your Faculty Account Credentials',
+    replyTo: process.env.ADMIN_REPLY_EMAIL || process.env.EMAIL_USER, // For replies
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2c3e50;">Welcome to PICT Faculty Portal, ${name}!</h2>
+        <p>Your faculty account has been created successfully.</p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #3498db;">
+          <h3 style="margin-top: 0;">Your Login Credentials</h3>
+          <p><strong>Faculty ID:</strong> ${facultyId}</p>
+          <p><strong>Password:</strong> ${password}</p>
+        </div>
+        
+        <p>For security reasons, please reset your password after first login:</p>
+        <a href="${resetLink}" style="display: inline-block; background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0;">
+          Reset Your Password
+        </a>
+        
+        <p style="margin-top: 20px; font-size: 0.9em; color: #7f8c8d;">
+          If you didn't request this account, please contact the admin immediately at 
+          <a href="mailto:${process.env.ADMIN_REPLY_EMAIL || process.env.EMAIL_USER}">
+            ${process.env.ADMIN_REPLY_EMAIL || process.env.EMAIL_USER}
+          </a>
+        </p>
+        
+        <p style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 20px;">
+          Best regards,<br>
+          <strong>PICT Admin Team</strong>
+        </p>
+      </div>
+    `,
+    // Text fallback for non-HTML email clients
+    text: `Welcome to PICT Faculty Portal!\n\nYour credentials:\nFaculty ID: ${facultyId}\nPassword: ${password}\n\nPlease reset your password after first login: ${resetLink}\n\nIf you didn't request this account, please contact the admin immediately.`
+  };
 
-// Add a new faculty member
+  try {
+    console.log("Attempting to send email to:", email);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully:", info.messageId);
+    
+    // Log email delivery (you could store this in a database)
+    console.log(`Credentials email sent to ${name} <${email}> at ${new Date()}`);
+    
+    return true;
+  } catch (error) {
+    console.error("Failed to send email to", email, "Error:", error);
+    
+    // Special handling for common errors
+    if (error.code === 'EAUTH') {
+      console.error("Authentication error - check email credentials");
+    } else if (error.code === 'EENVELOPE') {
+      console.error("Invalid recipient address:", email);
+    }
+    
+    throw new Error(`Email delivery failed: ${error.message}`);
+  }
+};
+
 const addFaculty = async (req, res) => {
+  console.log("Received request to add faculty:", req.body);
+  
   if (req.user.role !== "admin") {
+    console.warn("Unauthorized access attempt by user:", req.user.id);
     return res.status(403).json({ msg: "Access denied. Only admin can access this." });
   }
 
-  const { name, email, mobile_no, dept_id, password } = req.body;
+  const { name, email, mobile_no, dept_id, password, confirmPassword } = req.body;
 
-  console.log(`📥 Request to add new faculty: ${name}, ${email}, Dept: ${dept_id}`);
+  // Validate passwords match
+  if (password !== confirmPassword) {
+    console.warn("Password mismatch for:", email);
+    return res.status(400).json({ error: 'Passwords do not match' });
+  }
 
+  // Validate required fields
   if (!name || !email || !mobile_no || !dept_id || !password) {
+    console.warn("Missing required fields for:", email);
     return res.status(400).json({ error: 'All fields are required' });
   }
 
   try {
-    const faculty_id = await generateFacultyId(); // 👈 generate new ID
-    // 🔐 Hash the password
+    console.log("Generating faculty ID for:", email);
+    const faculty_id = await generateFacultyId();
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert faculty with hashed password
-    const result = await Admin.createFaculty(faculty_id,name, email, mobile_no, dept_id, hashedPassword);
+    console.log("Creating faculty record for:", email);
+    const result = await Admin.createFaculty(faculty_id, name, email, mobile_no, dept_id, hashedPassword);
 
-    console.log('✅ Faculty added successfully:', result);
-    res.status(201).json({ message: 'Faculty added successfully',faculty_id});
+    console.log("Attempting to send credentials email to:", email);
+    await sendCredentialsEmail(email, faculty_id, password, name);
+
+    console.log("Faculty created successfully:", faculty_id);
+    return res.status(201).json({ 
+      message: 'Faculty added successfully. Credentials sent to email.',
+      faculty_id 
+    });
 
   } catch (err) {
-    console.error('❌ Error adding faculty:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error in addFaculty:", err);
+    
+    // Special handling for duplicate email
+    if (err.message.includes('Duplicate') || err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Email already exists in system' });
+    }
+    
+    // Handle email sending failures gracefully
+    if (err.message.includes('Email delivery failed')) {
+      return res.status(201).json({ 
+        message: 'Faculty added but email delivery failed. Please notify them manually.',
+        faculty_id: faculty_id || 'unknown',
+        warning: err.message
+      });
+    }
+    
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
