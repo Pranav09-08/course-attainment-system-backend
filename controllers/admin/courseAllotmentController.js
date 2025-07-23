@@ -3,19 +3,21 @@ const CourseAllotment = require("../../models/admin/courseAllotmentModel");
 // Function to allot new course
 const allotCourse = async (req, res) => {
   if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    return res
+      .status(403)
+      .json({ msg: "Access denied. Only admin can access this." });
   }
 
   try {
     const courseData = req.body;
 
     // Convert faculty_id to string if it's a number
-    if (typeof courseData.faculty_id === 'number') {
+    if (typeof courseData.faculty_id === "number") {
       courseData.faculty_id = courseData.faculty_id.toString();
     }
 
     // Convert single class to array if class is string (for FE/SE)
-    if (typeof courseData.class === 'string') {
+    if (typeof courseData.class === "string") {
       courseData.class = [courseData.class];
     }
 
@@ -24,7 +26,7 @@ const allotCourse = async (req, res) => {
     const message = `✅ Allotment complete. Allotted: ${result.inserted.length}, Skipped: ${result.skipped.length}`;
     return res.status(201).json({
       message,
-      data: result
+      data: result,
     });
   } catch (err) {
     console.error("❌ Error allotting course:", err.message);
@@ -34,29 +36,36 @@ const allotCourse = async (req, res) => {
     } else if (err.message.includes("At least one class")) {
       return res.status(400).json({ error: err.message });
     } else {
-      return res.status(500).json({ error: "Internal Server Error", details: err.message });
+      return res
+        .status(500)
+        .json({ error: "Internal Server Error", details: err.message });
     }
   }
 };
 
-
 // Function get all allotted courses
 const getAllottedCourses = async (req, res) => {
   if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    return res
+      .status(403)
+      .json({ msg: "Access denied. Only admin can access this." });
   }
 
   try {
     const { dept_id } = req.params;
 
     if (!dept_id || isNaN(dept_id)) {
-      return res.status(400).json({ error: "Invalid or missing department ID" });
+      return res
+        .status(400)
+        .json({ error: "Invalid or missing department ID" });
     }
 
     const courses = await CourseAllotment.getAllottedCourses(dept_id);
 
     if (courses.length === 0) {
-      return res.status(404).json({ message: "No course allotments found for this department" });
+      return res
+        .status(404)
+        .json({ message: "No course allotments found for this department" });
     }
 
     return res.status(200).json({ data: courses });
@@ -69,63 +78,70 @@ const getAllottedCourses = async (req, res) => {
 // Function to update the course allotment
 const updateCourseAllotmentFaculty = async (req, res) => {
   if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    return res
+      .status(403)
+      .json({ msg: "Access denied. Only admin can access this." });
   }
 
   try {
     const { courseId, academicYr, sem } = req.params;
-    let { faculty_id } = req.body;
+    const { faculty_id, className, deptId, existingFacultyId } = req.body;
 
-    console.log("📥 Received request to update faculty for course allotment:", {
+    console.log("📥 Request data:", {
       courseId,
       academicYr,
       sem,
       faculty_id,
+      className,
+      deptId,
+      existingFacultyId,
     });
 
-    // Validate courseId, academicYr, sem, and faculty_id
-    if (!courseId || !academicYr || !sem || !faculty_id) {
-      return res.status(400).json({
-        error: "courseId, academicYr, sem, and faculty_id are required",
-      });
-    }
+    // Validate all required fields
+    const missingFields = [];
+    if (!courseId) missingFields.push("courseId");
+    if (!academicYr) missingFields.push("academicYr");
+    if (!sem) missingFields.push("sem");
+    if (!faculty_id) missingFields.push("faculty_id");
+    if (!className) missingFields.push("className");
+    if (!deptId) missingFields.push("deptId");
+    if (!existingFacultyId) missingFields.push("existingFacultyId");
 
-    // Ensure faculty_id is a string
-    if (typeof faculty_id === 'number') {
-      faculty_id = faculty_id.toString();
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: `Missing required fields: ${missingFields.join(", ")}`,
+      });
     }
 
     const result = await CourseAllotment.updateCourseAllotmentFaculty(
       courseId,
       academicYr,
       sem,
-      faculty_id // Now passing as string
+      className,
+      deptId,
+      faculty_id,
+      existingFacultyId
     );
 
-    if (result) {
-      console.log("✅ Faculty updated successfully");
-      return res.status(200).json({ message: "Faculty updated successfully", data: result });
-    } else {
-      return res.status(400).json({ error: "Failed to update faculty" });
-    }
+    return res.status(200).json({
+      message: "✅ Faculty updated successfully",
+      data: result,
+    });
   } catch (err) {
     console.error("❌ Error updating faculty:", err.message);
 
-    // Handle specific errors
-    if (err.message.includes("Course allotment not found")) {
-      return res.status(404).json({
-        error: "Course allotment not found for the given courseId, academicYr, and sem",
-      });
-    } else if (err.message.includes("New faculty ID does not exist")) {
-      return res.status(400).json({ error: "New faculty ID does not exist" });
-    } else if (err.message.includes("New faculty is already assigned")) {
+    if (err.message.includes("DUPLICATE_ENTRY")) {
       return res.status(409).json({
-        error: "New faculty is already assigned to this course for the given academic year and semester",
+        error:
+          "This faculty is already assigned to this exact course and class combination",
       });
-    } else if (err.message.includes("Failed to update faculty ID")) {
-      return res.status(500).json({ error: "Failed to update faculty ID" });
+    } else if (err.message.includes("not found")) {
+      return res.status(404).json({ error: "Course allotment not found" });
     } else {
-      return res.status(500).json({ error: "Internal Server Error", details: err.message });
+      return res.status(500).json({
+        error: "Internal Server Error",
+        details: err.message,
+      });
     }
   }
 };
@@ -133,7 +149,9 @@ const updateCourseAllotmentFaculty = async (req, res) => {
 // Function to delete course allotment
 const deleteCourseAllotment = async (req, res) => {
   if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Access denied. Only admin can access this." });
+    return res
+      .status(403)
+      .json({ msg: "Access denied. Only admin can access this." });
   }
 
   try {
@@ -147,7 +165,9 @@ const deleteCourseAllotment = async (req, res) => {
 
     // Validate input
     if (!courseId || !academicYr || !sem) {
-      return res.status(400).json({ error: "courseId, academicYr, and sem are required" });
+      return res
+        .status(400)
+        .json({ error: "courseId, academicYr, and sem are required" });
     }
 
     const result = await CourseAllotment.deleteCourseAllotment(
@@ -163,7 +183,9 @@ const deleteCourseAllotment = async (req, res) => {
         data: result,
       });
     } else {
-      return res.status(400).json({ error: "Failed to delete course allotment" });
+      return res
+        .status(400)
+        .json({ error: "Failed to delete course allotment" });
     }
   } catch (err) {
     console.error("❌ Error deleting course allotment:", err.message);
@@ -172,7 +194,9 @@ const deleteCourseAllotment = async (req, res) => {
     if (err.message.includes("Course allotment not found")) {
       return res.status(404).json({ error: "Course allotment not found" });
     } else {
-      return res.status(500).json({ error: "Internal Server Error", details: err.message });
+      return res
+        .status(500)
+        .json({ error: "Internal Server Error", details: err.message });
     }
   }
 };

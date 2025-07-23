@@ -26,8 +26,7 @@ const allotCourse = async (courseData) => {
       throw new Error("course_id must be a string");
     if (typeof faculty_id !== "string")
       throw new Error("faculty_id must be a string");
-    if (typeof sem !== "string")
-      throw new Error("sem must be a string");
+    if (typeof sem !== "string") throw new Error("sem must be a string");
     if (typeof dept_id !== "number")
       throw new Error("dept_id must be a number");
     if (typeof academic_yr !== "string")
@@ -47,8 +46,10 @@ const allotCourse = async (courseData) => {
 
     for (const division of classNames) {
       const [existing] = await db.query(
-        `SELECT * FROM Course_Allotment WHERE course_id = ? AND faculty_id = ? AND academic_yr = ? AND class = ?`,
-        [course_id, faculty_id, academic_yr, division]
+        `SELECT * FROM Course_Allotment 
+        WHERE course_id = ? AND faculty_id = ? AND class = ? 
+        AND sem = ? AND dept_id = ? AND academic_yr = ?`,
+        [course_id, faculty_id, division, sem, dept_id, academic_yr]
       );
 
       if (existing.length > 0) {
@@ -70,7 +71,6 @@ const allotCourse = async (courseData) => {
     throw err;
   }
 };
-
 
 //function to get all alloted courses
 const getAllottedCourses = async (dept_id) => {
@@ -102,75 +102,100 @@ const updateCourseAllotmentFaculty = async (
   courseId,
   academicYr,
   sem,
-  newFacultyId
+  className,
+  deptId,
+  newFacultyId,
+  existingFacultyId
 ) => {
   try {
-    // 🔍 Validate Input
-    if (!courseId || !academicYr || !sem || !newFacultyId) {
+    // Validate required fields
+    if (
+      !courseId ||
+      !academicYr ||
+      !sem ||
+      !className ||
+      !deptId ||
+      !newFacultyId ||
+      !existingFacultyId
+    ) {
+      throw new Error("All fields are required");
+    }
+
+    // 1️⃣ Check if the specific record exists
+    const [existingAllotment] = await db.query(
+      `SELECT * FROM Course_Allotment 
+       WHERE course_id = ? AND academic_yr = ? AND sem = ? 
+       AND class = ? AND dept_id = ? AND faculty_id = ?`,
+      [courseId, academicYr, sem, className, deptId, existingFacultyId]
+    );
+
+    if (existingAllotment.length === 0) {
+      throw new Error("Course allotment not found for the given details");
+    }
+
+    // 2️⃣ Check if the new assignment would create a duplicate
+    const [duplicateCheck] = await db.query(
+      `SELECT * FROM Course_Allotment 
+       WHERE course_id = ? AND academic_yr = ? AND sem = ? 
+       AND class = ? AND dept_id = ? AND faculty_id = ?`,
+      [courseId, academicYr, sem, className, deptId, newFacultyId]
+    );
+
+    if (duplicateCheck.length > 0) {
       throw new Error(
-        "courseId, academicYr, sem, and newFacultyId are required"
+        "DUPLICATE_ENTRY: This exact faculty-course-class allocation already exists"
       );
     }
 
-    // 🔍 Validate Data Types
-    if (typeof courseId !== "string")
-      throw new Error("courseId must be a string");
-    if (typeof academicYr !== "string")
-      throw new Error("academicYr must be a string");
-    if (typeof sem !== "string") throw new Error("sem must be a string");
-    if (typeof newFacultyId !== "string")
-      throw new Error("newFacultyId must be a number");
-
-    // 🔍 Check if the course allotment exists
-    const [allotment] = await db.query(
-      `SELECT * FROM Course_Allotment WHERE course_id = ? AND academic_yr = ? AND sem = ?`,
-      [courseId, academicYr, sem]
-    );
-    if (!allotment.length) {
-      throw new Error(
-        "Course allotment not found for the given courseId, academicYr, and sem"
-      );
-    }
-
-    // 🔍 Check if the new faculty exists
-    const [faculty] = await db.query(
-      `SELECT * FROM Faculty WHERE faculty_id = ?`,
-      [newFacultyId]
-    );
-    if (!faculty.length) {
-      throw new Error("New faculty ID does not exist");
-    }
-
-    // 🔍 Check if the new faculty is already assigned to the same course in the same academic year and semester
-    const [existing] = await db.query(
-      `SELECT * FROM Course_Allotment WHERE course_id = ? AND faculty_id = ? AND academic_yr = ? AND sem = ?`,
-      [courseId, newFacultyId, academicYr, sem]
-    );
-    if (existing.length) {
-      throw new Error(
-        "New faculty is already assigned to this course for the given academic year and semester"
-      );
-    }
-
-    // ✅ Update faculty_id
+    // 3️⃣ Perform the update
     const [result] = await db.query(
-      `UPDATE Course_Allotment SET faculty_id = ? WHERE course_id = ? AND academic_yr = ? AND sem = ?`,
-      [newFacultyId, courseId, academicYr, sem]
+      `UPDATE Course_Allotment 
+       SET faculty_id = ? 
+       WHERE course_id = ? AND academic_yr = ? AND sem = ? 
+       AND class = ? AND dept_id = ? AND faculty_id = ?`,
+      [
+        newFacultyId,
+        courseId,
+        academicYr,
+        sem,
+        className,
+        deptId,
+        existingFacultyId,
+      ]
     );
 
     if (result.affectedRows === 0) {
       throw new Error("Failed to update faculty ID");
     }
 
-    return { courseId, academicYr, sem, newFacultyId };
+    return {
+      message: "Faculty updated successfully",
+      updated: {
+        courseId,
+        academicYr,
+        sem,
+        className,
+        deptId,
+        newFacultyId,
+      },
+    };
   } catch (err) {
+    // Handle database-level duplicate errors
+    if (
+      err.code === "ER_DUP_ENTRY" ||
+      err.message.includes("DUPLICATE_ENTRY")
+    ) {
+      throw new Error(
+        "DUPLICATE_ENTRY: This faculty is already assigned to this exact course allocation"
+      );
+    }
     throw err;
   }
 };
 
 const deleteCourseAllotment = async (courseId, academicYr, sem) => {
   try {
-    // Validate input
+    // Validate inpute
     if (!courseId || !academicYr || !sem) {
       throw new Error("courseId, academicYr, and sem are required");
     }
